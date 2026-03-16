@@ -4,20 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="649a1940-ab71-46be-8b5d-90310e7cbfe0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Training.java" afterDir="false" />
+    <list default="true" id="649a1940-ab71-46be-8b5d-90310e7cbfe0" name="Changes" comment="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Coach.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Coach.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Football.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Football.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GameManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GameManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ISport.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ISport.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/League.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/League.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Match.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Match.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Person.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Person.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Player.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Player.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Team.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Team.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Volleyball.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Volleyball.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/UIManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,11 +88,24 @@
       <updated>1773356834586</updated>
       <workItem from="1773488720471" duration="763000" />
       <workItem from="1773593075186" duration="469000" />
-      <workItem from="1773617970010" duration="729000" />
+      <workItem from="1773617970010" duration="1649000" />
     </task>
+    <task id="LOCAL-00001" summary="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu">
+      <option name="closed" value="true" />
+      <created>1773618944074</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1773618944074</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu" />
+    <option name="LAST_COMMIT_MESSAGE" value="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu" />
   </component>
 </project>
