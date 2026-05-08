@@ -65,18 +65,21 @@ public class Match implements java.io.Serializable{
         }
     }
     private void finalizeMatch() {
-        homeTeam.addMatchStats(homeScore, awayScore);
-        awayTeam.addMatchStats(awayScore, homeScore);
-
         if (homeScore > awayScore) {
             homeTeam.addPoints(sport.getPointsForWin());
             awayTeam.addPoints(sport.getPointsForLoss());
+            homeTeam.recordWin(homeScore, awayScore);
+            awayTeam.recordLoss(awayScore, homeScore);
         } else if (awayScore > homeScore) {
             awayTeam.addPoints(sport.getPointsForWin());
             homeTeam.addPoints(sport.getPointsForLoss());
+            awayTeam.recordWin(awayScore, homeScore);
+            homeTeam.recordLoss(homeScore, awayScore);
         } else {
             homeTeam.addPoints(sport.getPointsForDraw());
             awayTeam.addPoints(sport.getPointsForDraw());
+            homeTeam.recordDraw(homeScore, awayScore);
+            awayTeam.recordDraw(awayScore, homeScore);
         }
 
         Random injuryRand = new Random();

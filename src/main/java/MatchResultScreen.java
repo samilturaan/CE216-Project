@@ -73,6 +73,8 @@ public class MatchResultScreen {
         Label ptsLbl = new Label(userTeam.getName() + " now has " + userTeam.getPoints() + " points");
         ptsLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #334155;");
 
+        VBox otherResultsBox = buildOtherResultsBox(gm, match);
+
         long injured = userTeam.getPlayers().stream().filter(Player::isInjured).count();
         if (injured > 0) {
             Label injLbl = new Label("⚠  " + injured + " player(s) injured after this match");
@@ -87,8 +89,43 @@ public class MatchResultScreen {
             else SceneManager.showMain();
         });
 
-        content.getChildren().addAll(badge, scoreCard, outcomeLbl, ptsLbl, continueBtn);
+        content.getChildren().addAll(badge, scoreCard, outcomeLbl, ptsLbl, otherResultsBox, continueBtn);
         root.getChildren().addAll(bg, content);
+    }
+
+    private VBox buildOtherResultsBox(GameManager gm, Match userMatch) {
+        VBox box = new VBox(8);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setMaxWidth(520);
+        box.setPadding(new Insets(14, 18, 14, 18));
+        box.setStyle("-fx-background-color: #111827; -fx-background-radius: 12; -fx-border-color: #1e2d45; -fx-border-radius: 12; -fx-border-width: 1;");
+
+        Label title = new Label("OTHER RESULTS THIS WEEK");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        box.getChildren().add(title);
+
+        boolean hasOtherResults = false;
+
+        if (gm.getLeague() != null) {
+            for (Match m : gm.getLeague().getLastWeekMatches()) {
+                if (m == userMatch) {
+                    continue;
+                }
+
+                Label result = new Label(m.getHomeTeam().getName() + "  " + m.getHomeScore() + " - " + m.getAwayScore() + "  " + m.getAwayTeam().getName());
+                result.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
+                box.getChildren().add(result);
+                hasOtherResults = true;
+            }
+        }
+
+        if (!hasOtherResults) {
+            Label empty = new Label("No other matches were played this week.");
+            empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #475569;");
+            box.getChildren().add(empty);
+        }
+
+        return box;
     }
 
     public StackPane getRoot() { return root; }

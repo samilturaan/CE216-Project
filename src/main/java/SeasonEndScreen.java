@@ -18,7 +18,15 @@ public class SeasonEndScreen {
         Team userTeam = gm.getUserTeam();
         League league = gm.getLeague();
         List<Team> standings = league.getStandings();
-        boolean champion = standings.get(0).getName().equals(userTeam.getName());
+        int userRank = 1;
+        for (int i = 0; i < standings.size(); i++) {
+            if (standings.get(i).getName().equals(userTeam.getName())) {
+                userRank = i + 1;
+                break;
+            }
+        }
+        Team championTeam = standings.get(0);
+        boolean champion = championTeam.getName().equals(userTeam.getName());
 
         Pane bg = new Pane(); bg.setPrefSize(1100,750);
         Circle c = new Circle(400, Color.web(champion ? "#f59e0b05" : "#3b82f604"));
@@ -38,8 +46,17 @@ public class SeasonEndScreen {
         Label titleLbl = new Label(champion ? "LEAGUE CHAMPIONS!" : "SEASON OVER");
         titleLbl.setStyle("-fx-font-size: 40px; -fx-font-weight: bold; -fx-text-fill: " + (champion ? "#f59e0b" : "#f0f4ff") + ";" + (champion ? "-fx-effect: dropshadow(gaussian,#f59e0b,20,0.4,0,0);" : ""));
 
-        Label subLbl = new Label(champion ? "Congratulations! You've won the league!" : "Better luck next season, manager.");
+        Label subLbl = new Label(champion ? "Congratulations! You've won the league!" : "You finished " + getOrdinal(userRank) + ". Champion: " + championTeam.getName());
         subLbl.setStyle("-fx-font-size: 15px; -fx-text-fill: #334155;");
+
+        HBox summaryCards = new HBox(14);
+        summaryCards.setAlignment(Pos.CENTER);
+        summaryCards.getChildren().addAll(
+                summaryBox("YOUR RANK", getOrdinal(userRank)),
+                summaryBox("POINTS", String.valueOf(userTeam.getPoints())),
+                summaryBox("RECORD", userTeam.getWins() + "-" + userTeam.getDraws() + "-" + userTeam.getLosses()),
+                summaryBox("GOAL DIFF", String.valueOf(userTeam.getGoalDifference()))
+        );
 
         VBox standingsCard = new VBox(10);
         standingsCard.setPadding(new Insets(20));
@@ -61,9 +78,12 @@ public class SeasonEndScreen {
             Label nameL = new Label((isUser ? "★  " : "") + t.getName());
             nameL.setStyle("-fx-font-size: 14px; -fx-text-fill: " + (isUser ? "#60a5fa" : "#94a3b8") + "; -fx-font-weight: " + (isUser ? "bold" : "normal") + ";");
             Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+            Label record = new Label(t.getWins() + "W " + t.getDraws() + "D " + t.getLosses() + "L  GD " + t.getGoalDifference());
+            record.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (isUser ? "#60a5fa" : "#475569") + ";");
+
             Label pts = new Label(t.getPoints() + " pts");
-            pts.setStyle("-fx-font-size: 14px; -fx-text-fill: " + (isUser ? "#3b82f6" : "#334155") + ";");
-            row.getChildren().addAll(medal, nameL, sp, pts);
+            pts.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + (isUser ? "#3b82f6" : "#334155") + ";");
+            row.getChildren().addAll(medal, nameL, sp, record, pts);
             standingsCard.getChildren().add(row);
         }
 
@@ -71,8 +91,42 @@ public class SeasonEndScreen {
         newGameBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 12 36 12 36; -fx-border-width: 0;");
         newGameBtn.setOnAction(e -> SceneManager.showSplash());
 
-        content.getChildren().addAll(badge, icon, titleLbl, subLbl, standingsCard, newGameBtn);
+        content.getChildren().addAll(badge, icon, titleLbl, subLbl, summaryCards, standingsCard, newGameBtn);
         root.getChildren().addAll(bg, content);
+    }
+
+    private VBox summaryBox(String title, String value) {
+        VBox box = new VBox(6);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(12, 18, 12, 18));
+        box.setMinWidth(115);
+        box.setStyle("-fx-background-color: #111827; -fx-background-radius: 12; -fx-border-color: #1e2d45; -fx-border-radius: 12; -fx-border-width: 1;");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+
+        box.getChildren().addAll(titleLabel, valueLabel);
+        return box;
+    }
+
+    private String getOrdinal(int number) {
+        if (number % 100 >= 11 && number % 100 <= 13) {
+            return number + "th";
+        }
+
+        switch (number % 10) {
+            case 1:
+                return number + "st";
+            case 2:
+                return number + "nd";
+            case 3:
+                return number + "rd";
+            default:
+                return number + "th";
+        }
     }
 
     public StackPane getRoot() { return root; }

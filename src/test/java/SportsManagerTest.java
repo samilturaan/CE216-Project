@@ -217,6 +217,39 @@ public class SportsManagerTest {
         assertEquals("Balanced", team.getTactic());
     }
 
+    @Test
+    public void testTeamRecordWinUpdatesStats() {
+        team.recordWin(3, 1);
+        assertEquals(1, team.getWins());
+        assertEquals(0, team.getDraws());
+        assertEquals(0, team.getLosses());
+        assertEquals(3, team.getGoalsFor());
+        assertEquals(1, team.getGoalsAgainst());
+        assertEquals(2, team.getGoalDifference());
+    }
+
+    @Test
+    public void testTeamRecordDrawUpdatesStats() {
+        team.recordDraw(2, 2);
+        assertEquals(0, team.getWins());
+        assertEquals(1, team.getDraws());
+        assertEquals(0, team.getLosses());
+        assertEquals(2, team.getGoalsFor());
+        assertEquals(2, team.getGoalsAgainst());
+        assertEquals(0, team.getGoalDifference());
+    }
+
+    @Test
+    public void testTeamRecordLossUpdatesStats() {
+        team.recordLoss(0, 4);
+        assertEquals(0, team.getWins());
+        assertEquals(0, team.getDraws());
+        assertEquals(1, team.getLosses());
+        assertEquals(0, team.getGoalsFor());
+        assertEquals(4, team.getGoalsAgainst());
+        assertEquals(-4, team.getGoalDifference());
+    }
+
     // ===========================
     // Match Tests
     // ===========================
@@ -272,6 +305,21 @@ public class SportsManagerTest {
         assertTrue(total == 2 || total == 3);
     }
 
+    @Test
+    public void testMatchSimulationUpdatesWinDrawLossStats() {
+        Team home = new Team("Home");
+        Team away = new Team("Away");
+        Match match = new Match(home, away, football);
+        match.simulateMatch();
+
+        assertEquals(1, home.getWins() + home.getDraws() + home.getLosses());
+        assertEquals(1, away.getWins() + away.getDraws() + away.getLosses());
+        assertEquals(match.getHomeScore(), home.getGoalsFor());
+        assertEquals(match.getAwayScore(), away.getGoalsFor());
+        assertEquals(match.getAwayScore(), home.getGoalsAgainst());
+        assertEquals(match.getHomeScore(), away.getGoalsAgainst());
+    }
+
     // ===========================
     // League Tests
     // ===========================
@@ -321,6 +369,20 @@ public class SportsManagerTest {
         assertEquals(1, league.getCurrentWeek());
     }
 
+    @Test
+    public void testLeaguePlayNextWeekPlaysMultipleMatches() {
+        league.addTeam(new Team("T1"));
+        league.addTeam(new Team("T2"));
+        league.addTeam(new Team("T3"));
+        league.addTeam(new Team("T4"));
+        league.generateFixtures();
+
+        league.playNextWeek();
+
+        assertEquals(2, league.getLastWeekMatches().size());
+        assertEquals(2, league.getFixtures().stream().filter(Match::isPlayed).count());
+    }
+
     // ===========================
     // Training Tests
     // ===========================
@@ -341,6 +403,22 @@ public class SportsManagerTest {
         int before = player.getSkillLevel();
         new Training("Fitness").applyTraining(team);
         assertEquals(before, player.getSkillLevel()); // yaralı oyuncu antrenman yapmaz
+    }
+
+    @Test
+    public void testNameGeneratorReturnsNames() {
+        NameGenerator generator = new NameGenerator();
+        assertNotNull(generator.getRandomPlayerName());
+        assertNotNull(generator.getRandomCoachName());
+        assertNotNull(generator.getRandomTeamName());
+    }
+
+    @Test
+    public void testNameGeneratorReturnsNonEmptyNames() {
+        NameGenerator generator = new NameGenerator();
+        assertFalse(generator.getRandomPlayerName().isBlank());
+        assertFalse(generator.getRandomCoachName().isBlank());
+        assertFalse(generator.getRandomTeamName().isBlank());
     }
 
     // ===========================
@@ -389,6 +467,66 @@ public class SportsManagerTest {
         gameManager.selectSport(football);
         gameManager.startNewGame("My Team");
         assertDoesNotThrow(() -> gameManager.trainUserTeam());
+    }
+
+    @Test
+    public void testGameManagerTrainingLimitIsFivePerWeek() {
+        gameManager.selectSport(football);
+        gameManager.startNewGame("My Team");
+
+        for (int i = 0; i < 5; i++) {
+            assertTrue(gameManager.trainUserTeam());
+        }
+
+        assertFalse(gameManager.trainUserTeam());
+        assertEquals(5, gameManager.getTrainingsThisWeek());
+    }
+
+    @Test
+    public void testGameManagerTrainingLimitResetsAfterWeek() {
+        gameManager.selectSport(football);
+        gameManager.startNewGame("My Team");
+
+        for (int i = 0; i < 5; i++) {
+            gameManager.trainUserTeam();
+        }
+
+        assertFalse(gameManager.canTrainUserTeam());
+        gameManager.playNextWeek();
+        assertEquals(0, gameManager.getTrainingsThisWeek());
+        assertTrue(gameManager.canTrainUserTeam());
+    }
+
+    @Test
+    public void testGameManagerCreatesEightTeams() {
+        gameManager.selectSport(football);
+        gameManager.startNewGame("My Team");
+        assertEquals(8, gameManager.getLeague().getTeams().size());
+    }
+
+    @Test
+    public void testGameManagerCreatesSportSpecificFootballPositions() {
+        gameManager.selectSport(football);
+        gameManager.startNewGame("My Team");
+
+        List<Player> players = gameManager.getUserTeam().getPlayers();
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Goalkeeper")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Defender")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Midfielder")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Forward")));
+    }
+
+    @Test
+    public void testGameManagerCreatesSportSpecificVolleyballPositions() {
+        gameManager.selectSport(volleyball);
+        gameManager.startNewGame("My Team");
+
+        List<Player> players = gameManager.getUserTeam().getPlayers();
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Setter")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Outside Hitter")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Middle Blocker")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Opposite Hitter")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Libero")));
     }
 
     @Test

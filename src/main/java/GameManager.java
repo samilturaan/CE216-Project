@@ -12,6 +12,8 @@ public class GameManager implements java.io.Serializable{
     private Team userTeam;
     private Training training;
     private NameGenerator nameGenerator;
+    private int trainingsThisWeek;
+    private static final int MAX_TRAININGS_PER_WEEK = 5;
 
     public GameManager() {
         this.league = null;
@@ -19,6 +21,7 @@ public class GameManager implements java.io.Serializable{
         this.userTeam = null;
         this.training = new Training("General Training");
         this.nameGenerator = new NameGenerator();
+        this.trainingsThisWeek = 0;
     }
 
     public void selectSport(ISport sport) {
@@ -43,6 +46,7 @@ public class GameManager implements java.io.Serializable{
         }
 
         league = new League(selectedSport);
+        trainingsThisWeek = 0;
         userTeam = new Team(userTeamName);
 
         generatePlayersForTeam(userTeam);
@@ -100,16 +104,33 @@ public class GameManager implements java.io.Serializable{
         return "Player";
     }
 
-    public void trainUserTeam() {
-        if (userTeam != null) {
-            training.applyTraining(userTeam);
+    public boolean trainUserTeam() {
+        if (userTeam == null || isSeasonFinished() || trainingsThisWeek >= MAX_TRAININGS_PER_WEEK) {
+            return false;
         }
+
+        training.applyTraining(userTeam);
+        trainingsThisWeek++;
+        return true;
+    }
+
+    public boolean canTrainUserTeam() {
+        return userTeam != null && !isSeasonFinished() && trainingsThisWeek < MAX_TRAININGS_PER_WEEK;
+    }
+
+    public int getTrainingsThisWeek() {
+        return trainingsThisWeek;
+    }
+
+    public int getMaxTrainingsPerWeek() {
+        return MAX_TRAININGS_PER_WEEK;
     }
 
     public void playNextWeek() {
-        if (league != null) {
+        if (league != null && !league.seasonFinished()) {
             league.playNextWeek();
             recoverAllPlayers();
+            trainingsThisWeek = 0;
         }
     }
 

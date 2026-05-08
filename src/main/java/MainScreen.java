@@ -141,6 +141,12 @@ public class MainScreen {
             case "fixtures"  -> contentArea.getChildren().add(buildFixtures());
             case "train"     -> doTrain();
             case "play"      -> doPlay();
+            case "save"      -> {
+                gm.saveGame("savegame.dat");
+                showAlert("💾 Saved", "Game saved successfully.");
+                activeTab = "dashboard";
+                contentArea.getChildren().add(buildDashboard());
+            }
         }
     }
 
@@ -240,7 +246,11 @@ public class MainScreen {
 
             Button playBtn = new Button("▶  PLAY MATCH");
             playBtn.setMaxWidth(Double.MAX_VALUE);
-            playBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 0 10 0; -fx-border-width: 0;");
+            boolean canPlay = !gm.isSeasonFinished();
+            playBtn.setDisable(!canPlay);
+            playBtn.setStyle(canPlay
+                    ? "-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 0 10 0; -fx-border-width: 0;"
+                    : "-fx-background-color: #1f2937; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-padding: 10 0 10 0; -fx-border-width: 0;");
             playBtn.setOnAction(e -> doPlay());
 
             card.getChildren().addAll(cardTitle, teams, weekLbl, playBtn);
@@ -272,13 +282,18 @@ public class MainScreen {
             tb.setStyle(active
                     ? "-fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 0 9 0; -fx-border-width: 0;"
                     : "-fx-background-color: #0d1222; -fx-text-fill: #475569; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 0 9 0; -fx-border-width: 0;");
+            tb.setDisable(getNextUserMatch(gm.getLeague()) == null);
             tb.setOnAction(e -> { userTeam.setTactic(t); showTab("dashboard"); });
             btns.getChildren().add(tb);
         }
 
-        Button trainBtn = new Button("🏃  Train Team");
+        Button trainBtn = new Button("🏃  Train Team (" + gm.getTrainingsThisWeek() + "/" + gm.getMaxTrainingsPerWeek() + ")");
         trainBtn.setMaxWidth(Double.MAX_VALUE);
-        trainBtn.setStyle("-fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 0 9 0; -fx-border-width: 0;");
+        boolean canTrain = gm.canTrainUserTeam() && getNextUserMatch(gm.getLeague()) != null;
+        trainBtn.setDisable(!canTrain);
+        trainBtn.setStyle(canTrain
+                ? "-fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 0 9 0; -fx-border-width: 0;"
+                : "-fx-background-color: #1f2937; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-padding: 9 0 9 0; -fx-border-width: 0;");
         trainBtn.setOnAction(e -> doTrain());
 
         card.getChildren().addAll(cardTitle, current, btns, trainBtn);
@@ -426,8 +441,14 @@ public class MainScreen {
         hdr.setPadding(new Insets(8, 20, 8, 20));
         hdr.setStyle("-fx-background-color: #0d1222; -fx-background-radius: 8;");
         addCol(hdr, "#", 40, "#334155");
-        addCol(hdr, "CLUB", 320, "#334155");
-        addCol(hdr, "PTS", 80, "#334155");
+        addCol(hdr, "CLUB", 260, "#334155");
+        addCol(hdr, "W", 45, "#334155");
+        addCol(hdr, "D", 45, "#334155");
+        addCol(hdr, "L", 45, "#334155");
+        addCol(hdr, "GF", 55, "#334155");
+        addCol(hdr, "GA", 55, "#334155");
+        addCol(hdr, "GD", 55, "#334155");
+        addCol(hdr, "PTS", 70, "#334155");
         table.getChildren().add(hdr);
 
         String[] medals = {"🥇", "🥈", "🥉", "4"};
@@ -438,17 +459,29 @@ public class MainScreen {
             row.setPadding(new Insets(13, 20, 13, 20));
             row.setStyle(isUser
                     ? "-fx-background-color: #0f1e35; -fx-background-radius: 10; -fx-border-color: #3b82f6; -fx-border-radius: 10; -fx-border-width: 1;"
-                    : (i%2==0 ? "-fx-background-color: #111827;" : "-fx-background-color: #0e1520;") + " -fx-background-radius: 10;");
+                    : (i % 2 == 0 ? "-fx-background-color: #111827;" : "-fx-background-color: #0e1520;") + " -fx-background-radius: 10;");
 
             Label medal = new Label(i < 3 ? medals[i] : medals[3]);
             medal.setMinWidth(40);
+
             Label nameL = new Label((isUser ? "★  " : "    ") + t.getName());
-            nameL.setMinWidth(320);
+            nameL.setMinWidth(260);
+            nameL.setMaxWidth(260);
             nameL.setStyle("-fx-font-size: 14px; -fx-text-fill: " + (isUser ? "#60a5fa" : "#94a3b8") + "; -fx-font-weight: " + (isUser ? "bold" : "normal") + ";");
+
+            Label winsL = tableValue(String.valueOf(t.getWins()), 45, isUser);
+            Label drawsL = tableValue(String.valueOf(t.getDraws()), 45, isUser);
+            Label lossesL = tableValue(String.valueOf(t.getLosses()), 45, isUser);
+            Label gfL = tableValue(String.valueOf(t.getGoalsFor()), 55, isUser);
+            Label gaL = tableValue(String.valueOf(t.getGoalsAgainst()), 55, isUser);
+            Label gdL = tableValue(String.valueOf(t.getGoalDifference()), 55, isUser);
+
             Label ptsL = new Label(String.valueOf(t.getPoints()));
-            ptsL.setMinWidth(80);
+            ptsL.setMinWidth(70);
+            ptsL.setMaxWidth(70);
             ptsL.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: " + (isUser ? "#3b82f6" : "#475569") + ";");
-            row.getChildren().addAll(medal, nameL, ptsL);
+
+            row.getChildren().addAll(medal, nameL, winsL, drawsL, lossesL, gfL, gaL, gdL, ptsL);
             table.getChildren().add(row);
         }
 
@@ -457,6 +490,14 @@ public class MainScreen {
         sp.setFitToWidth(true);
         sp.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
         return sp;
+    }
+
+    private Label tableValue(String text, double width, boolean isUser) {
+        Label label = new Label(text);
+        label.setMinWidth(width);
+        label.setMaxWidth(width);
+        label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (isUser ? "#60a5fa" : "#64748b") + ";");
+        return label;
     }
 
     private ScrollPane buildFixtures() {
@@ -513,9 +554,22 @@ public class MainScreen {
     }
 
     private void doTrain() {
-        gm.trainUserTeam();
+        if (gm.isSeasonFinished() || getNextUserMatch(gm.getLeague()) == null) {
+            activeTab = "standings";
+            showAlert("Season Finished", "Your season is over. Training is no longer available.");
+            showTab("standings");
+            return;
+        }
+
+        boolean trained = gm.trainUserTeam();
         activeTab = "dashboard";
-        showAlert("✅ Training Complete", "All available players improved their skills!");
+
+        if (trained) {
+            showAlert("✅ Training Complete", "Training completed (" + gm.getTrainingsThisWeek() + "/" + gm.getMaxTrainingsPerWeek() + ").");
+        } else {
+            showAlert("Training Limit Reached", "You can train a maximum of " + gm.getMaxTrainingsPerWeek() + " times per week.");
+        }
+
         showTab("dashboard");
     }
 
