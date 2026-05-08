@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Match {
+public class Match implements java.io.Serializable{
 
     private Team homeTeam;
     private Team awayTeam;

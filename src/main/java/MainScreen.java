@@ -78,6 +78,12 @@ public class MainScreen {
                 fmNavBtn("▶",  "Play Match",    "play")
         );
 
+        Button saveBtn = fmNavBtn("💾", "Save Game", "save");
+        saveBtn.setOnAction(e -> {
+            gm.saveGame("savegame.dat");
+            showAlert("💾 Saved", "Oyunun başarıyla kaydedildi!");
+        });
+
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 

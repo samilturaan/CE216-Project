@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class GameManager {
+public class GameManager implements java.io.Serializable{
 
     private League league;
     private ISport selectedSport;
@@ -93,5 +93,23 @@ public class GameManager {
 
     public boolean isSeasonFinished() {
         return league != null && league.seasonFinished();
+    }
+
+    public void saveGame(String fileName) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            oos.writeObject(this);
+            System.out.println("Oyun başarıyla kaydedildi: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Kaydetme hatası: " + e.getMessage());
+        }
+    }
+
+    public static GameManager loadGame(String fileName) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            return (GameManager) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Yükleme hatası: " + e.getMessage());
+            return null;
+        }
     }
 }

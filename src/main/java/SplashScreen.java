@@ -60,6 +60,22 @@ public class SplashScreen {
         startBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 13 48 13 48; -fx-border-width: 0;");
         startBtn.setOnAction(e -> SceneManager.showSportSelect());
 
+        Button loadBtn = new Button("LOAD SAVED GAME");
+        loadBtn.setStyle("-fx-background-color: #1e2d45; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 13 48 13 48; -fx-border-width: 0;");
+        loadBtn.setOnAction(e -> {
+            GameManager loaded = GameManager.loadGame("savegame.dat");
+            if (loaded != null) {
+                SceneManager.setGameManager(loaded);
+                SceneManager.showMain();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Load Game Error");
+                alert.setHeaderText("No Saved Game Found");
+                alert.setContentText("There is no previous save file to load. Please start a new game first.");
+                alert.showAndWait();
+            }
+        });
+
         Label version = new Label("CE216 Software Engineering  •  Team 6");
         version.setStyle("-fx-font-size: 11px; -fx-text-fill: #1e2d45;");
 

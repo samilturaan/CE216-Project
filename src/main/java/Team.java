@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Team {
+public class Team implements java.io.Serializable {
 
     private int goalsFor;
     private int goalsAgainst;

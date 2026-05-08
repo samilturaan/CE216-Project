@@ -1,4 +1,4 @@
-public interface ISport {
+public interface ISport extends java.io.Serializable {
 
     String getSportName();
 

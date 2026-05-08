@@ -1,4 +1,4 @@
-public abstract class Person {
+public abstract class Person implements java.io.Serializable {
 
     protected String name;
     protected int age;

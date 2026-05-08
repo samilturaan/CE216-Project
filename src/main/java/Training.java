@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Training {
+public class Training implements java.io.Serializable {
 
     private String trainingType;
 

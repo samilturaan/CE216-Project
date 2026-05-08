@@ -23,6 +23,10 @@ public class SceneManager {
         gameManager = new GameManager();
     }
 
+    public static void setGameManager(GameManager gm) {
+        gameManager = gm;
+    }
+
     public static void showSplash() {
         SplashScreen splash = new SplashScreen();
         Scene scene = new Scene(splash.getRoot(), 1100, 750);

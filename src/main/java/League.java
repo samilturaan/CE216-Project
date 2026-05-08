@@ -3,7 +3,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class League {
+public class League implements java.io.Serializable {
 
     private List<Team> teams;
     private List<Match> fixtures;
