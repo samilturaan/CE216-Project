@@ -515,10 +515,42 @@ public class MainScreen {
 
     private void doPlay() {
         if (gm.isSeasonFinished()) { SceneManager.showSeasonEnd(); return; }
-        Match next = getNextMatch(gm.getLeague());
-        if (next == null) { SceneManager.showSeasonEnd(); return; }
+        Match match = getNextMatch(gm.getLeague());
+        if (match == null) { SceneManager.showSeasonEnd(); return; }
+
+        Team userTeam = gm.getUserTeam();
+        boolean isUserMatch = match.getHomeTeam().getName().equals(userTeam.getName()) ||
+                match.getAwayTeam().getName().equals(userTeam.getName());
+
+        if (isUserMatch) {
+            while (!match.isPlayed()) {
+                match.playNextPeriod();
+
+                if (!match.isPlayed()) {
+                    String periodName = match.getSport().getPeriodName();
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle(periodName + " " + (match.getCurrentPeriod() - 1) + " Ended");
+                    alert.setHeaderText(match.getHomeTeam().getName() + "  " + match.getHomeScore() + " - " + match.getAwayScore() + "  " + match.getAwayTeam().getName());
+                    alert.setContentText(periodName + " finished! Change your tactic for the next " + periodName.toLowerCase() + "?");
+
+                    ButtonType btnAttack = new ButtonType("Attacking");
+                    ButtonType btnBalanced = new ButtonType("Balanced");
+                    ButtonType btnDefensive = new ButtonType("Defensive");
+
+                    alert.getButtonTypes().setAll(btnAttack, btnBalanced, btnDefensive);
+
+                    java.util.Optional<ButtonType> result = alert.showAndWait();
+                    if (result.isPresent()) {
+                        if (result.get() == btnAttack) userTeam.setTactic("Attacking");
+                        else if (result.get() == btnDefensive) userTeam.setTactic("Defensive");
+                        else userTeam.setTactic("Balanced");
+                    }
+                }
+            }
+        }
+
         gm.playNextWeek();
-        SceneManager.showMatchResult(next);
+        SceneManager.showMatchResult(match);
     }
 
     private void showAlert(String title, String msg) {

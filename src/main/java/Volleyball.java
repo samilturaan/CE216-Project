@@ -29,4 +29,16 @@ public class Volleyball implements ISport {
     public int getPointsForLoss() {
         return 0;
     }
+    @Override
+    public int getMaxPeriods() {
+        return 5;
+    }
+    @Override
+    public String getPeriodName() {
+        return "Set";
+    }
+    @Override
+    public boolean isMatchOver(int homeScore, int awayScore, int currentPeriod) {
+        return homeScore == 3 || awayScore == 3 || currentPeriod > getMaxPeriods();
+    }
 }

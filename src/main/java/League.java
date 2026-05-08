@@ -81,11 +81,11 @@ public class League {
                         if (m.getHomeTeam() == t1 && m.getAwayTeam() == t2) {
                             if (m.getHomeScore() > m.getAwayScore()) h2hT1 += sport.getPointsForWin();
                             else if (m.getHomeScore() < m.getAwayScore()) h2hT2 += sport.getPointsForWin();
-                            else { h2hT1 += sport.getPointsForDraw(); h2hT2 += sport.getPointsForDraw(); }
+
                         } else if (m.getHomeTeam() == t2 && m.getAwayTeam() == t1) {
                             if (m.getAwayScore() > m.getHomeScore()) h2hT1 += sport.getPointsForWin();
                             else if (m.getAwayScore() < m.getHomeScore()) h2hT2 += sport.getPointsForWin();
-                            else { h2hT1 += sport.getPointsForDraw(); h2hT2 += sport.getPointsForDraw(); }
+
                         }
                     }
                 }

@@ -11,4 +11,10 @@ public interface ISport {
     int getPointsForDraw();
 
     int getPointsForLoss();
+
+    int getMaxPeriods();
+
+    String getPeriodName();
+
+    boolean isMatchOver(int homeScore, int awayScore, int currentPeriod);
 }

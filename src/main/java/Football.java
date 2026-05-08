@@ -29,4 +29,16 @@ public class Football implements ISport {
     public int getPointsForLoss() {
         return 0;
     }
+    @Override
+    public int getMaxPeriods() {
+        return 2;
+    }
+    @Override
+    public String getPeriodName() {
+        return "Half";
+    }
+    @Override
+    public boolean isMatchOver(int homeScore, int awayScore, int currentPeriod) {
+        return currentPeriod > getMaxPeriods();
+    }
 }
