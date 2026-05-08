@@ -5,6 +5,9 @@ public class Team implements java.io.Serializable {
 
     private int goalsFor;
     private int goalsAgainst;
+    private int wins;
+    private int draws;
+    private int losses;
 
     private String name;
     private List<Player> players;
@@ -21,6 +24,9 @@ public class Team implements java.io.Serializable {
 
         this.goalsFor = 0;
         this.goalsAgainst = 0;
+        this.wins = 0;
+        this.draws = 0;
+        this.losses = 0;
     }
 
     public String getName() {
@@ -37,6 +43,26 @@ public class Team implements java.io.Serializable {
 
     public int getPoints() {
         return points;
+    }
+
+    public int getGoalsFor() {
+        return goalsFor;
+    }
+
+    public int getGoalsAgainst() {
+        return goalsAgainst;
+    }
+
+    public int getWins() {
+        return wins;
+    }
+
+    public int getDraws() {
+        return draws;
+    }
+
+    public int getLosses() {
+        return losses;
     }
 
     public String getTactic() {
@@ -68,6 +94,21 @@ public class Team implements java.io.Serializable {
         }
         return available;
     }
+    public void recordWin(int scored, int conceded) {
+        wins++;
+        addMatchStats(scored, conceded);
+    }
+
+    public void recordDraw(int scored, int conceded) {
+        draws++;
+        addMatchStats(scored, conceded);
+    }
+
+    public void recordLoss(int scored, int conceded) {
+        losses++;
+        addMatchStats(scored, conceded);
+    }
+
     public void addMatchStats(int scored, int conceded) {
         this.goalsFor += scored;
         this.goalsAgainst += conceded;
@@ -81,6 +122,8 @@ public class Team implements java.io.Serializable {
     public String toString() {
         return "Team: " + name +
                 ", Points: " + points +
+                ", W-D-L: " + wins + "-" + draws + "-" + losses +
+                ", GD: " + getGoalDifference() +
                 ", Players: " + players.size();
     }
 }

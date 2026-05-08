@@ -11,12 +11,14 @@ public class GameManager implements java.io.Serializable{
     private ISport selectedSport;
     private Team userTeam;
     private Training training;
+    private NameGenerator nameGenerator;
 
     public GameManager() {
         this.league = null;
         this.selectedSport = null;
         this.userTeam = null;
         this.training = new Training("General Training");
+        this.nameGenerator = new NameGenerator();
     }
 
     public void selectSport(ISport sport) {
@@ -44,13 +46,13 @@ public class GameManager implements java.io.Serializable{
         userTeam = new Team(userTeamName);
 
         generatePlayersForTeam(userTeam);
-        userTeam.addCoach(new Coach("User Coach", 45, 5));
+        userTeam.addCoach(new Coach(nameGenerator.getRandomCoachName(), 45, 5));
         league.addTeam(userTeam);
 
-        for (int i = 1; i <= 3; i++) {
-            Team cpuTeam = new Team("CPU Team " + i);
+        for (int i = 1; i <= 7; i++) {
+            Team cpuTeam = new Team(nameGenerator.getRandomTeamName());
             generatePlayersForTeam(cpuTeam);
-            cpuTeam.addCoach(new Coach("Coach " + i, 40 + i, 3 + i));
+            cpuTeam.addCoach(new Coach(nameGenerator.getRandomCoachName(), 40 + i, 3 + i));
             league.addTeam(cpuTeam);
         }
 
@@ -62,11 +64,40 @@ public class GameManager implements java.io.Serializable{
         int playerCount = selectedSport.getPlayersOnField() + selectedSport.getSubstitutesCount();
 
         for (int i = 1; i <= playerCount; i++) {
-            String position = "Player";
+            String position = generatePositionForSport(i);
             int skill = random.nextInt(41) + 60;
-            Player player = new Player(team.getName() + " Player " + i, 18 + random.nextInt(15), position, skill);
+            Player player = new Player(nameGenerator.getRandomPlayerName(), 18 + random.nextInt(15), position, skill);
             team.addPlayer(player);
         }
+    }
+
+    private String generatePositionForSport(int playerNumber) {
+        String sportName = selectedSport.getSportName();
+
+        if (sportName.equalsIgnoreCase("Football")) {
+            if (playerNumber == 1) {
+                return "Goalkeeper";
+            } else if (playerNumber <= 5) {
+                return "Defender";
+            } else if (playerNumber <= 9) {
+                return "Midfielder";
+            } else {
+                return "Forward";
+            }
+        }
+
+        if (sportName.equalsIgnoreCase("Volleyball")) {
+            String[] volleyballPositions = {
+                    "Setter",
+                    "Outside Hitter",
+                    "Middle Blocker",
+                    "Opposite Hitter",
+                    "Libero"
+            };
+            return volleyballPositions[(playerNumber - 1) % volleyballPositions.length];
+        }
+
+        return "Player";
     }
 
     public void trainUserTeam() {

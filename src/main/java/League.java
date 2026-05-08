@@ -7,6 +7,7 @@ public class League implements java.io.Serializable {
 
     private List<Team> teams;
     private List<Match> fixtures;
+    private List<Match> lastWeekMatches;
     private int currentWeek;
     private ISport sport;
 
@@ -14,6 +15,7 @@ public class League implements java.io.Serializable {
         this.sport = sport;
         this.teams = new ArrayList<>();
         this.fixtures = new ArrayList<>();
+        this.lastWeekMatches = new ArrayList<>();
         this.currentWeek = 0;
     }
 
@@ -27,6 +29,10 @@ public class League implements java.io.Serializable {
 
     public List<Match> getFixtures() {
         return fixtures;
+    }
+
+    public List<Match> getLastWeekMatches() {
+        return lastWeekMatches;
     }
 
     public int getCurrentWeek() {
@@ -53,12 +59,25 @@ public class League implements java.io.Serializable {
 
     public void playNextWeek() {
 
-        if (currentWeek >= fixtures.size()) {
+        if (seasonFinished()) {
             return;
         }
 
-        Match match = fixtures.get(currentWeek);
-        match.simulateMatch();
+        lastWeekMatches.clear();
+        List<Team> teamsPlayedThisWeek = new ArrayList<>();
+
+        for (Match match : fixtures) {
+            if (!match.isPlayed()
+                    && !teamsPlayedThisWeek.contains(match.getHomeTeam())
+                    && !teamsPlayedThisWeek.contains(match.getAwayTeam())) {
+
+                match.simulateMatch();
+                lastWeekMatches.add(match);
+                teamsPlayedThisWeek.add(match.getHomeTeam());
+                teamsPlayedThisWeek.add(match.getAwayTeam());
+            }
+        }
+
         currentWeek++;
     }
 
@@ -105,6 +124,11 @@ public class League implements java.io.Serializable {
     }
 
     public boolean seasonFinished() {
-        return currentWeek >= fixtures.size();
+        for (Match match : fixtures) {
+            if (!match.isPlayed()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

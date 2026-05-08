@@ -521,36 +521,32 @@ public class MainScreen {
 
     private void doPlay() {
         if (gm.isSeasonFinished()) { SceneManager.showSeasonEnd(); return; }
-        Match match = getNextMatch(gm.getLeague());
+        Match match = getNextUserMatch(gm.getLeague());
         if (match == null) { SceneManager.showSeasonEnd(); return; }
 
         Team userTeam = gm.getUserTeam();
-        boolean isUserMatch = match.getHomeTeam().getName().equals(userTeam.getName()) ||
-                match.getAwayTeam().getName().equals(userTeam.getName());
 
-        if (isUserMatch) {
-            while (!match.isPlayed()) {
-                match.playNextPeriod();
+        while (!match.isPlayed()) {
+            match.playNextPeriod();
 
-                if (!match.isPlayed()) {
-                    String periodName = match.getSport().getPeriodName();
-                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setTitle(periodName + " " + (match.getCurrentPeriod() - 1) + " Ended");
-                    alert.setHeaderText(match.getHomeTeam().getName() + "  " + match.getHomeScore() + " - " + match.getAwayScore() + "  " + match.getAwayTeam().getName());
-                    alert.setContentText(periodName + " finished! Change your tactic for the next " + periodName.toLowerCase() + "?");
+            if (!match.isPlayed()) {
+                String periodName = match.getSport().getPeriodName();
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle(periodName + " " + (match.getCurrentPeriod() - 1) + " Ended");
+                alert.setHeaderText(match.getHomeTeam().getName() + "  " + match.getHomeScore() + " - " + match.getAwayScore() + "  " + match.getAwayTeam().getName());
+                alert.setContentText(periodName + " finished! Change your tactic for the next " + periodName.toLowerCase() + "?");
 
-                    ButtonType btnAttack = new ButtonType("Attacking");
-                    ButtonType btnBalanced = new ButtonType("Balanced");
-                    ButtonType btnDefensive = new ButtonType("Defensive");
+                ButtonType btnAttack = new ButtonType("Attacking");
+                ButtonType btnBalanced = new ButtonType("Balanced");
+                ButtonType btnDefensive = new ButtonType("Defensive");
 
-                    alert.getButtonTypes().setAll(btnAttack, btnBalanced, btnDefensive);
+                alert.getButtonTypes().setAll(btnAttack, btnBalanced, btnDefensive);
 
-                    java.util.Optional<ButtonType> result = alert.showAndWait();
-                    if (result.isPresent()) {
-                        if (result.get() == btnAttack) userTeam.setTactic("Attacking");
-                        else if (result.get() == btnDefensive) userTeam.setTactic("Defensive");
-                        else userTeam.setTactic("Balanced");
-                    }
+                java.util.Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent()) {
+                    if (result.get() == btnAttack) userTeam.setTactic("Attacking");
+                    else if (result.get() == btnDefensive) userTeam.setTactic("Defensive");
+                    else userTeam.setTactic("Balanced");
                 }
             }
         }
@@ -566,10 +562,23 @@ public class MainScreen {
     }
 
     private Match getNextMatch(League league) {
-        if (league == null) return null;
-        List<Match> f = league.getFixtures();
-        int w = league.getCurrentWeek();
-        return w < f.size() ? f.get(w) : null;
+        return getNextUserMatch(league);
+    }
+
+    private Match getNextUserMatch(League league) {
+        if (league == null || gm.getUserTeam() == null) return null;
+
+        Team userTeam = gm.getUserTeam();
+        for (Match match : league.getFixtures()) {
+            boolean userHome = match.getHomeTeam().getName().equals(userTeam.getName());
+            boolean userAway = match.getAwayTeam().getName().equals(userTeam.getName());
+
+            if (!match.isPlayed() && (userHome || userAway)) {
+                return match;
+            }
+        }
+
+        return null;
     }
 
     private String getPos(Team userTeam) {
