@@ -282,7 +282,7 @@ public class SportsManagerTest {
         league.addTeam(new Team("T2"));
         league.addTeam(new Team("T3"));
         league.generateFixtures();
-        assertEquals(3, league.getFixtures().size()); // 3C2 = 3
+        assertEquals(6, league.getFixtures().size()); // Double round-robin: 3C2 * 2 = 6
     }
 
     @Test
@@ -303,6 +303,8 @@ public class SportsManagerTest {
         league.addTeam(new Team("T1"));
         league.addTeam(new Team("T2"));
         league.generateFixtures();
+        assertFalse(league.seasonFinished());
+        league.playNextWeek();
         assertFalse(league.seasonFinished());
         league.playNextWeek();
         assertTrue(league.seasonFinished());

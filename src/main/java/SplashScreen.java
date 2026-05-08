@@ -81,7 +81,7 @@ public class SplashScreen {
 
         VBox content = new VBox(20);
         content.setAlignment(Pos.CENTER);
-        content.getChildren().addAll(logoArea, sub, divider, startBtn, version);
+        content.getChildren().addAll(logoArea, sub, divider, startBtn, loadBtn, version);
 
         root.getChildren().addAll(bg, content);
     }

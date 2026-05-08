@@ -98,7 +98,7 @@ public class MainScreen {
         weekLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #1e2d45;");
         weekBox.getChildren().add(weekLbl);
 
-        sb.getChildren().addAll(logo, teamInfo, nav, spacer, weekBox);
+        sb.getChildren().addAll(logo, teamInfo, nav, spacer, saveBtn, weekBox);
         return sb;
     }
 
