@@ -44,7 +44,22 @@ public class Match {
             awayTeam.addPoints(sport.getPointsForDraw());
         }
 
+        // Rastgele sakatlık: %20 ihtimalle 1 oyuncu 1-3 maç sakatlanır
+        Random injuryRand = new Random();
+        injureRandomPlayer(homeTeam, injuryRand);
+        injureRandomPlayer(awayTeam, injuryRand);
+
         played = true;
+    }
+
+    private void injureRandomPlayer(Team team, Random random) {
+        if (random.nextInt(5) == 0) { // %20 ihtimal
+            java.util.List<Player> available = team.getAvailablePlayers();
+            if (!available.isEmpty()) {
+                Player unlucky = available.get(random.nextInt(available.size()));
+                unlucky.injure(random.nextInt(3) + 1);
+            }
+        }
     }
 
     public String getResult() {
