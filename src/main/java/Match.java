@@ -43,6 +43,8 @@ public class Match {
             homeTeam.addPoints(sport.getPointsForDraw());
             awayTeam.addPoints(sport.getPointsForDraw());
         }
+        homeTeam.addMatchStats(homeScore, awayScore);
+        awayTeam.addMatchStats(awayScore, homeScore);
 
         // Rastgele sakatlık: %20 ihtimalle 1 oyuncu 1-3 maç sakatlanır
         Random injuryRand = new Random();
@@ -64,7 +66,7 @@ public class Match {
 
     public String getResult() {
         return homeTeam.getName() + " " + homeScore + " - " +
-               awayScore + " " + awayTeam.getName();
+                awayScore + " " + awayTeam.getName();
     }
 
     public boolean isPlayed() {

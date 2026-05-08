@@ -34,15 +34,21 @@ public class League {
     }
 
     public void generateFixtures() {
-
         fixtures.clear();
+        List<Match> firstHalf = new ArrayList<>();
+        List<Match> secondHalf = new ArrayList<>();
 
         for (int i = 0; i < teams.size(); i++) {
+
             for (int j = i + 1; j < teams.size(); j++) {
-                Match match = new Match(teams.get(i), teams.get(j), sport);
-                fixtures.add(match);
+                firstHalf.add(new Match(teams.get(i), teams.get(j), sport));
+                secondHalf.add(new Match(teams.get(j), teams.get(i), sport));
             }
         }
+
+        fixtures.addAll(firstHalf);
+        fixtures.addAll(secondHalf);
+
     }
 
     public void playNextWeek() {
@@ -63,10 +69,38 @@ public class League {
         Collections.sort(table, new Comparator<Team>() {
             @Override
             public int compare(Team t1, Team t2) {
-                return t2.getPoints() - t1.getPoints();
+
+                if (t1.getPoints() != t2.getPoints()) {
+                    return t2.getPoints() - t1.getPoints();
+                }
+
+                int h2hT1 = 0;
+                int h2hT2 = 0;
+                for (Match m : fixtures) {
+                    if (m.isPlayed()) {
+                        if (m.getHomeTeam() == t1 && m.getAwayTeam() == t2) {
+                            if (m.getHomeScore() > m.getAwayScore()) h2hT1 += sport.getPointsForWin();
+                            else if (m.getHomeScore() < m.getAwayScore()) h2hT2 += sport.getPointsForWin();
+                            else { h2hT1 += sport.getPointsForDraw(); h2hT2 += sport.getPointsForDraw(); }
+                        } else if (m.getHomeTeam() == t2 && m.getAwayTeam() == t1) {
+                            if (m.getAwayScore() > m.getHomeScore()) h2hT1 += sport.getPointsForWin();
+                            else if (m.getAwayScore() < m.getHomeScore()) h2hT2 += sport.getPointsForWin();
+                            else { h2hT1 += sport.getPointsForDraw(); h2hT2 += sport.getPointsForDraw(); }
+                        }
+                    }
+                }
+
+                if (h2hT1 != h2hT2) {
+                    return h2hT2 - h2hT1;
+                }
+
+                if (t1.getGoalDifference() != t2.getGoalDifference()) {
+                    return t2.getGoalDifference() - t1.getGoalDifference();
+                }
+
+                return t1.getName().compareTo(t2.getName());
             }
         });
-
         return table;
     }
 
