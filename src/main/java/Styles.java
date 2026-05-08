@@ -1,226 +1,80 @@
 public class Styles {
 
+    public static final String BG_DEEP    = "#080c18";
+    public static final String BG_PANEL   = "#0d1222";
+    public static final String BG_CARD    = "#111827";
+    public static final String BORDER     = "#1e2d45";
+    public static final String ACCENT     = "#3b82f6";
+    public static final String ACCENT2    = "#60a5fa";
+    public static final String TEXT_PRI   = "#f0f4ff";
+    public static final String TEXT_SEC   = "#64748b";
+    public static final String SUCCESS    = "#22c55e";
+    public static final String DANGER     = "#ef4444";
+
     public static final String BASE = """
-        * {
-            -fx-font-family: 'Segoe UI', sans-serif;
-        }
-        .root-dark {
-            -fx-background-color: #0d0f1a;
-        }
-        .title-label {
-            -fx-font-size: 42px;
-            -fx-font-weight: bold;
-            -fx-text-fill: #ffffff;
-            -fx-effect: dropshadow(gaussian, #4fc3f7, 18, 0.4, 0, 0);
-        }
-        .subtitle-label {
-            -fx-font-size: 15px;
-            -fx-text-fill: #78909c;
-        }
-        .section-label {
-            -fx-font-size: 13px;
-            -fx-font-weight: bold;
-            -fx-text-fill: #4fc3f7;
-            -fx-padding: 0 0 4 0;
-        }
+        * { -fx-font-family: 'Segoe UI', 'Tahoma', sans-serif; }
+        .root-bg { -fx-background-color: #080c18; }
+        .panel-bg { -fx-background-color: #0d1222; }
         .card {
-            -fx-background-color: #151929;
-            -fx-background-radius: 12;
-            -fx-border-color: #1e2a3a;
-            -fx-border-radius: 12;
+            -fx-background-color: #111827;
+            -fx-background-radius: 14;
+            -fx-border-color: #1e2d45;
+            -fx-border-radius: 14;
             -fx-border-width: 1;
-            -fx-padding: 16;
         }
-        .card-highlight {
-            -fx-background-color: #0d1a2e;
-            -fx-background-radius: 12;
-            -fx-border-color: #4fc3f7;
-            -fx-border-radius: 12;
+        .card-accent {
+            -fx-background-color: #111827;
+            -fx-background-radius: 14;
+            -fx-border-color: #3b82f6;
+            -fx-border-radius: 14;
             -fx-border-width: 1.5;
-            -fx-padding: 16;
         }
+        .page-title { -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff; }
+        .card-title { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #64748b; }
+        .big-number { -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #3b82f6; }
         .btn-primary {
-            -fx-background-color: #4fc3f7;
-            -fx-text-fill: #0d0f1a;
-            -fx-font-weight: bold;
-            -fx-font-size: 14px;
-            -fx-background-radius: 8;
-            -fx-cursor: hand;
-            -fx-padding: 10 24 10 24;
+            -fx-background-color: #3b82f6; -fx-text-fill: white;
+            -fx-font-weight: bold; -fx-font-size: 13px;
+            -fx-background-radius: 8; -fx-cursor: hand;
+            -fx-padding: 9 22 9 22; -fx-border-width: 0;
         }
-        .btn-primary:hover {
-            -fx-background-color: #81d4fa;
+        .btn-primary:hover { -fx-background-color: #60a5fa; }
+        .btn-ghost {
+            -fx-background-color: transparent; -fx-text-fill: #64748b;
+            -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand;
+            -fx-padding: 9 16 9 16; -fx-border-color: #1e2d45;
+            -fx-border-radius: 8; -fx-border-width: 1;
         }
-        .btn-secondary {
-            -fx-background-color: #1e2a3a;
-            -fx-text-fill: #cfd8dc;
-            -fx-font-size: 13px;
-            -fx-background-radius: 8;
-            -fx-cursor: hand;
-            -fx-padding: 8 18 8 18;
-            -fx-border-color: #2e3e52;
-            -fx-border-radius: 8;
-            -fx-border-width: 1;
+        .btn-ghost:hover { -fx-border-color: #3b82f6; -fx-text-fill: #f0f4ff; }
+        .nav-item {
+            -fx-background-color: transparent; -fx-text-fill: #475569;
+            -fx-font-size: 13px; -fx-cursor: hand;
+            -fx-padding: 11 16 11 16; -fx-background-radius: 10;
+            -fx-alignment: center-left; -fx-border-width: 0;
         }
-        .btn-secondary:hover {
-            -fx-background-color: #263545;
-            -fx-border-color: #4fc3f7;
+        .nav-item:hover { -fx-background-color: #111827; -fx-text-fill: #94a3b8; }
+        .nav-item-active {
+            -fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa;
+            -fx-font-size: 13px; -fx-font-weight: bold; -fx-cursor: hand;
+            -fx-padding: 11 16 11 16; -fx-background-radius: 10;
+            -fx-alignment: center-left; -fx-border-width: 0;
         }
-        .btn-danger {
-            -fx-background-color: #c62828;
-            -fx-text-fill: white;
-            -fx-font-weight: bold;
-            -fx-font-size: 13px;
-            -fx-background-radius: 8;
-            -fx-cursor: hand;
-            -fx-padding: 8 18 8 18;
+        .badge-win { -fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 7 2 7; }
+        .badge-loss { -fx-background-color: #7f1d1d; -fx-text-fill: #ef4444; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 7 2 7; }
+        .badge-draw { -fx-background-color: #292524; -fx-text-fill: #a8a29e; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 7 2 7; }
+        .badge-upcoming { -fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 7 2 7; }
+        .badge-injured { -fx-background-color: #7f1d1d; -fx-text-fill: #ef4444; -fx-font-size: 10px; -fx-background-radius: 4; -fx-padding: 2 6 2 6; }
+        .badge-fit { -fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-size: 10px; -fx-background-radius: 4; -fx-padding: 2 6 2 6; }
+        .tfield {
+            -fx-background-color: #111827; -fx-text-fill: #f0f4ff;
+            -fx-prompt-text-fill: #334155; -fx-border-color: #1e2d45;
+            -fx-border-radius: 8; -fx-background-radius: 8;
+            -fx-padding: 10 14 10 14; -fx-font-size: 14px;
         }
-        .btn-danger:hover {
-            -fx-background-color: #e53935;
-        }
-        .btn-success {
-            -fx-background-color: #2e7d32;
-            -fx-text-fill: white;
-            -fx-font-weight: bold;
-            -fx-font-size: 14px;
-            -fx-background-radius: 8;
-            -fx-cursor: hand;
-            -fx-padding: 10 24 10 24;
-        }
-        .btn-success:hover {
-            -fx-background-color: #43a047;
-        }
-        .text-field-dark {
-            -fx-background-color: #1e2a3a;
-            -fx-text-fill: #eceff1;
-            -fx-prompt-text-fill: #546e7a;
-            -fx-border-color: #2e3e52;
-            -fx-border-radius: 8;
-            -fx-background-radius: 8;
-            -fx-padding: 8 12 8 12;
-            -fx-font-size: 14px;
-        }
-        .text-field-dark:focused {
-            -fx-border-color: #4fc3f7;
-        }
-        .combo-dark {
-            -fx-background-color: #1e2a3a;
-            -fx-border-color: #2e3e52;
-            -fx-border-radius: 8;
-            -fx-background-radius: 8;
-            -fx-text-fill: #eceff1;
-            -fx-font-size: 13px;
-        }
-        .table-dark {
-            -fx-background-color: #151929;
-            -fx-border-color: #1e2a3a;
-            -fx-text-fill: #eceff1;
-        }
-        .table-dark .column-header {
-            -fx-background-color: #1a2436;
-            -fx-text-fill: #4fc3f7;
-            -fx-font-weight: bold;
-            -fx-font-size: 12px;
-        }
-        .table-dark .table-row-cell {
-            -fx-background-color: #151929;
-            -fx-border-color: #1e2a3a;
-            -fx-text-fill: #cfd8dc;
-        }
-        .table-dark .table-row-cell:selected {
-            -fx-background-color: #1a3a5c;
-        }
-        .table-dark .table-row-cell:odd {
-            -fx-background-color: #111524;
-        }
-        .stat-value {
-            -fx-font-size: 28px;
-            -fx-font-weight: bold;
-            -fx-text-fill: #4fc3f7;
-        }
-        .stat-label {
-            -fx-font-size: 11px;
-            -fx-text-fill: #546e7a;
-        }
-        .nav-btn {
-            -fx-background-color: transparent;
-            -fx-text-fill: #78909c;
-            -fx-font-size: 13px;
-            -fx-cursor: hand;
-            -fx-padding: 10 20 10 20;
-            -fx-background-radius: 8;
-        }
-        .nav-btn:hover {
-            -fx-background-color: #1e2a3a;
-            -fx-text-fill: #eceff1;
-        }
-        .nav-btn-active {
-            -fx-background-color: #1a3a5c;
-            -fx-text-fill: #4fc3f7;
-            -fx-font-size: 13px;
-            -fx-cursor: hand;
-            -fx-padding: 10 20 10 20;
-            -fx-background-radius: 8;
-            -fx-font-weight: bold;
-        }
-        .sport-card {
-            -fx-background-color: #151929;
-            -fx-background-radius: 16;
-            -fx-border-color: #1e2a3a;
-            -fx-border-radius: 16;
-            -fx-border-width: 2;
-            -fx-padding: 32;
-            -fx-cursor: hand;
-        }
-        .sport-card:hover {
-            -fx-background-color: #0d1a2e;
-            -fx-border-color: #4fc3f7;
-            -fx-effect: dropshadow(gaussian, #4fc3f740, 20, 0.3, 0, 0);
-        }
-        .injury-badge {
-            -fx-background-color: #b71c1c;
-            -fx-text-fill: white;
-            -fx-font-size: 10px;
-            -fx-background-radius: 4;
-            -fx-padding: 2 6 2 6;
-        }
-        .separator-dark {
-            -fx-background-color: #1e2a3a;
-        }
-        .scroll-pane-dark {
-            -fx-background-color: transparent;
-            -fx-border-color: transparent;
-        }
-        .scroll-pane-dark .viewport {
-            -fx-background-color: transparent;
-        }
-        .scroll-pane-dark .scroll-bar {
-            -fx-background-color: #151929;
-        }
-        .scroll-pane-dark .thumb {
-            -fx-background-color: #2e3e52;
-            -fx-background-radius: 4;
-        }
-        .week-label {
-            -fx-font-size: 13px;
-            -fx-text-fill: #4fc3f7;
-            -fx-font-weight: bold;
-        }
-        .match-row {
-            -fx-background-color: #151929;
-            -fx-background-radius: 8;
-            -fx-border-color: #1e2a3a;
-            -fx-border-radius: 8;
-            -fx-border-width: 1;
-            -fx-padding: 10 16 10 16;
-        }
-        .match-row-played {
-            -fx-background-color: #111524;
-            -fx-background-radius: 8;
-            -fx-border-color: #1a2e1a;
-            -fx-border-radius: 8;
-            -fx-border-width: 1;
-            -fx-padding: 10 16 10 16;
-        }
+        .tfield:focused { -fx-border-color: #3b82f6; }
+        .scroll-clean { -fx-background-color: transparent; -fx-border-color: transparent; }
+        .scroll-clean .viewport { -fx-background-color: transparent; }
+        .scroll-clean .scroll-bar { -fx-background-color: #0d1222; }
+        .scroll-clean .thumb { -fx-background-color: #1e2d45; -fx-background-radius: 4; }
     """;
 }

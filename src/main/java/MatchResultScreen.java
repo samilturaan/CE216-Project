@@ -1,124 +1,94 @@
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.shape.*;
 
 public class MatchResultScreen {
-
     private StackPane root;
 
     public MatchResultScreen(Match match) {
         root = new StackPane();
-        root.setStyle("-fx-background-color: #0d0f1a;");
-        root.getStylesheets().add("data:text/css," + Styles.BASE.replace("\n", " "));
+        root.setStyle("-fx-background-color: #080c18;");
+        root.getStylesheets().add("data:text/css," + Styles.BASE.replace("\n"," "));
 
-        // Dekor
-        Pane decor = new Pane();
-        decor.setPrefSize(1100, 750);
-        Circle c1 = new Circle(300, Color.web("#4fc3f708"));
-        c1.setLayoutX(550); c1.setLayoutY(375);
-        decor.getChildren().add(c1);
+        Pane bg = new Pane(); bg.setPrefSize(1100,750);
+        Circle c = new Circle(400, Color.web("#3b82f605"));
+        c.setLayoutX(550); c.setLayoutY(375);
+        bg.getChildren().add(c);
 
-        VBox content = new VBox(32);
+        GameManager gm = SceneManager.getGameManager();
+        Team userTeam = gm.getUserTeam();
+        boolean userHome = match.getHomeTeam().getName().equals(userTeam.getName());
+        boolean userAway = match.getAwayTeam().getName().equals(userTeam.getName());
+        int userScore = userHome ? match.getHomeScore() : match.getAwayScore();
+        int oppScore  = userHome ? match.getAwayScore()  : match.getHomeScore();
+        boolean involved = userHome || userAway;
+
+        String outcome = !involved ? "Match Played" : userScore > oppScore ? "VICTORY" : userScore < oppScore ? "DEFEAT" : "DRAW";
+        String outcomeColor = userScore > oppScore ? "#22c55e" : userScore < oppScore ? "#ef4444" : "#f59e0b";
+        String outcomeEmoji = userScore > oppScore ? "🏆" : userScore < oppScore ? "😔" : "🤝";
+
+        VBox content = new VBox(28);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(60));
 
-        // Başlık
-        Label header = new Label("MATCH RESULT");
-        header.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #4fc3f7; " +
-                "-fx-background-color: #1a3a5c; -fx-background-radius: 20; -fx-padding: 6 16 6 16;");
+        Label badge = new Label("FULL TIME");
+        badge.setStyle("-fx-background-color: #1e2d45; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 5 14 5 14;");
 
-        // Skor kutusu
-        HBox scoreBox = new HBox(40);
-        scoreBox.setAlignment(Pos.CENTER);
-        scoreBox.setPadding(new Insets(40, 60, 40, 60));
-        scoreBox.setStyle("-fx-background-color: #151929; -fx-background-radius: 20; " +
-                "-fx-border-color: #1e2a3a; -fx-border-radius: 20; -fx-border-width: 1;");
+        HBox scoreCard = new HBox(48);
+        scoreCard.setAlignment(Pos.CENTER);
+        scoreCard.setPadding(new Insets(40, 80, 40, 80));
+        scoreCard.setStyle("-fx-background-color: #111827; -fx-background-radius: 20; -fx-border-color: #1e2d45; -fx-border-radius: 20; -fx-border-width: 1;");
 
-        // Home team
         VBox homeBox = new VBox(8);
         homeBox.setAlignment(Pos.CENTER);
-        Label homeName = new Label(match.getHomeTeam().getName());
-        homeName.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label homeIcon = new Label("🏟");
+        homeIcon.setStyle("-fx-font-size: 40px;");
         Label homeScore = new Label(String.valueOf(match.getHomeScore()));
-        homeScore.setStyle("-fx-font-size: 72px; -fx-font-weight: bold; -fx-text-fill: #4fc3f7;");
-        homeBox.getChildren().addAll(homeName, homeScore);
+        homeScore.setStyle("-fx-font-size: 64px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label homeName = new Label(match.getHomeTeam().getName());
+        homeName.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
+        homeBox.getChildren().addAll(homeIcon, homeScore, homeName);
 
-        Label vsLabel = new Label("–");
-        vsLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: #37474f;");
+        Label dash = new Label("—");
+        dash.setStyle("-fx-font-size: 36px; -fx-text-fill: #1e2d45;");
 
-        // Away team
         VBox awayBox = new VBox(8);
         awayBox.setAlignment(Pos.CENTER);
-        Label awayName = new Label(match.getAwayTeam().getName());
-        awayName.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label awayIcon = new Label("🏟");
+        awayIcon.setStyle("-fx-font-size: 40px;");
         Label awayScore = new Label(String.valueOf(match.getAwayScore()));
-        awayScore.setStyle("-fx-font-size: 72px; -fx-font-weight: bold; -fx-text-fill: #4fc3f7;");
-        awayBox.getChildren().addAll(awayName, awayScore);
+        awayScore.setStyle("-fx-font-size: 64px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label awayName = new Label(match.getAwayTeam().getName());
+        awayName.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
+        awayBox.getChildren().addAll(awayIcon, awayScore, awayName);
 
-        scoreBox.getChildren().addAll(homeBox, vsLabel, awayBox);
+        scoreCard.getChildren().addAll(homeBox, dash, awayBox);
 
-        // Sonuç açıklaması
-        String outcome = getOutcome(match);
-        Label outcomeLabel = new Label(outcome);
-        outcomeLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: " +
-                getOutcomeColor(match) + ";");
+        Label outcomeLbl = new Label(outcomeEmoji + "  " + outcome);
+        outcomeLbl.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: " + outcomeColor + ";");
 
-        // Points info
-        GameManager gm = SceneManager.getGameManager();
-        Team userTeam = gm.getUserTeam();
-        Label pointsLabel = new Label("Your team now has " + userTeam.getPoints() + " points");
-        pointsLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #546e7a;");
+        Label ptsLbl = new Label(userTeam.getName() + " now has " + userTeam.getPoints() + " points");
+        ptsLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #334155;");
 
-        // Injured players
-        long injuredCount = userTeam.getPlayers().stream().filter(Player::isInjured).count();
-        if (injuredCount > 0) {
-            Label injuryLabel = new Label("⚠  " + injuredCount + " player(s) got injured!");
-            injuryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ef9a9a; " +
-                    "-fx-background-color: #3e1212; -fx-background-radius: 8; -fx-padding: 8 16 8 16;");
-            content.getChildren().add(injuryLabel);
+        long injured = userTeam.getPlayers().stream().filter(Player::isInjured).count();
+        if (injured > 0) {
+            Label injLbl = new Label("⚠  " + injured + " player(s) injured after this match");
+            injLbl.setStyle("-fx-background-color: #450a0a; -fx-text-fill: #ef4444; -fx-font-size: 13px; -fx-background-radius: 8; -fx-padding: 8 16 8 16;");
+            content.getChildren().add(injLbl);
         }
 
-        Button continueBtn = new Button("Continue →");
-        continueBtn.setStyle("-fx-background-color: #4fc3f7; -fx-text-fill: #0d0f1a; " +
-                "-fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; " +
-                "-fx-cursor: hand; -fx-padding: 12 40 12 40;");
+        Button continueBtn = new Button("Continue  →");
+        continueBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 12 40 12 40; -fx-border-width: 0;");
         continueBtn.setOnAction(e -> {
-            if (gm.isSeasonFinished()) {
-                SceneManager.showSeasonEnd();
-            } else {
-                SceneManager.showMain();
-            }
+            if (gm.isSeasonFinished()) SceneManager.showSeasonEnd();
+            else SceneManager.showMain();
         });
 
-        content.getChildren().addAll(header, scoreBox, outcomeLabel, pointsLabel, continueBtn);
-        root.getChildren().addAll(decor, content);
-    }
-
-    private String getOutcome(Match match) {
-        GameManager gm = SceneManager.getGameManager();
-        Team userTeam = gm.getUserTeam();
-        boolean userIsHome = match.getHomeTeam().getName().equals(userTeam.getName());
-        boolean userIsAway = match.getAwayTeam().getName().equals(userTeam.getName());
-
-        if (!userIsHome && !userIsAway) return "Match Played";
-
-        int userScore = userIsHome ? match.getHomeScore() : match.getAwayScore();
-        int oppScore = userIsHome ? match.getAwayScore() : match.getHomeScore();
-
-        if (userScore > oppScore) return "🏆  Victory!";
-        if (userScore < oppScore) return "😔  Defeat";
-        return "🤝  Draw";
-    }
-
-    private String getOutcomeColor(Match match) {
-        String outcome = getOutcome(match);
-        if (outcome.contains("Victory")) return "#a5d6a7";
-        if (outcome.contains("Defeat")) return "#ef9a9a";
-        return "#fff176";
+        content.getChildren().addAll(badge, scoreCard, outcomeLbl, ptsLbl, continueBtn);
+        root.getChildren().addAll(bg, content);
     }
 
     public StackPane getRoot() { return root; }

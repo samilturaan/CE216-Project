@@ -1,107 +1,94 @@
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.shape.*;
 
 public class SportSelectScreen {
-
     private StackPane root;
 
     public SportSelectScreen() {
         root = new StackPane();
-        root.setStyle("-fx-background-color: #0d0f1a;");
-        root.getStylesheets().add("data:text/css," + Styles.BASE.replace("\n", " "));
+        root.setStyle("-fx-background-color: #080c18;");
+        root.getStylesheets().add("data:text/css," + Styles.BASE.replace("\n"," "));
 
-        // Dekor
-        Pane decor = new Pane();
-        decor.setPrefSize(1100, 750);
-        Circle bg1 = new Circle(250, Color.web("#4fc3f706"));
-        bg1.setLayoutX(1050); bg1.setLayoutY(700);
-        Circle bg2 = new Circle(180, Color.web("#4fc3f706"));
-        bg2.setLayoutX(50); bg2.setLayoutY(100);
-        decor.getChildren().addAll(bg1, bg2);
+        Pane bg = new Pane(); bg.setPrefSize(1100,750);
+        Circle c = new Circle(350, Color.web("#3b82f604"));
+        c.setLayoutX(1100); c.setLayoutY(0);
+        bg.getChildren().add(c);
 
-        VBox mainContent = new VBox(40);
-        mainContent.setAlignment(Pos.CENTER);
-        mainContent.setPadding(new Insets(60));
+        VBox main = new VBox(36);
+        main.setAlignment(Pos.CENTER);
+        main.setPadding(new Insets(60));
 
-        Label title = new Label("SELECT YOUR SPORT");
-        title.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white;");
+        VBox header = new VBox(8);
+        header.setAlignment(Pos.CENTER);
+        Label title = new Label("Choose Your Sport");
+        title.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label sub = new Label("Select the sport you want to manage");
+        sub.setStyle("-fx-font-size: 14px; -fx-text-fill: #334155;");
+        header.getChildren().addAll(title, sub);
 
-        Label sub = new Label("Choose a sport to begin your managerial career");
-        sub.setStyle("-fx-font-size: 14px; -fx-text-fill: #546e7a;");
-
-        HBox cards = new HBox(40);
+        HBox cards = new HBox(28);
         cards.setAlignment(Pos.CENTER);
+        cards.getChildren().addAll(
+                buildCard("⚽", "FOOTBALL", "11 vs 11  •  5 substitutes", "Win: 3pts  •  Draw: 1pt  •  Loss: 0pts", "#1d4ed8", "#3b82f6", new Football()),
+                buildCard("🏐", "VOLLEYBALL", "6 vs 6  •  6 substitutes", "Win: 3pts  •  No draws  •  Loss: 0pts", "#6d28d9", "#a78bfa", new Volleyball())
+        );
 
-        VBox footballCard = buildSportCard("⚽", "FOOTBALL",
-                "11 players  •  5 subs\nWin: 3pts  •  Draw: 1pt  •  Loss: 0pts",
-                "#1565c0", "#4fc3f7");
+        Button back = new Button("← Back");
+        back.setStyle("-fx-background-color: transparent; -fx-text-fill: #334155; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-width: 0;");
+        back.setOnAction(e -> SceneManager.showSplash());
 
-        VBox volleyballCard = buildSportCard("🏐", "VOLLEYBALL",
-                "6 players  •  6 subs\nWin: 3pts  •  No draws  •  Loss: 0pts",
-                "#4a148c", "#ce93d8");
-
-        footballCard.setOnMouseClicked(e -> {
-            SceneManager.resetGameManager();
-            SceneManager.getGameManager().selectSport(new Football());
-            SceneManager.showTeamSetup();
-        });
-
-        volleyballCard.setOnMouseClicked(e -> {
-            SceneManager.resetGameManager();
-            SceneManager.getGameManager().selectSport(new Volleyball());
-            SceneManager.showTeamSetup();
-        });
-
-        cards.getChildren().addAll(footballCard, volleyballCard);
-
-        Button backBtn = new Button("← Back");
-        backBtn.getStyleClass().add("btn-secondary");
-        backBtn.setOnAction(e -> SceneManager.showSplash());
-
-        mainContent.getChildren().addAll(title, sub, cards, backBtn);
-
-        root.getChildren().addAll(decor, mainContent);
+        main.getChildren().addAll(header, cards, back);
+        root.getChildren().addAll(bg, main);
     }
 
-    private VBox buildSportCard(String emoji, String name, String desc, String gradFrom, String gradTo) {
-        VBox card = new VBox(16);
+    private VBox buildCard(String emoji, String name, String line1, String line2, String bgColor, String accent, ISport sport) {
+        VBox card = new VBox(18);
         card.setAlignment(Pos.CENTER);
-        card.setPadding(new Insets(48, 56, 48, 56));
-        card.setStyle(String.format(
-            "-fx-background-color: #151929; -fx-background-radius: 20; " +
-            "-fx-border-radius: 20; -fx-border-width: 2; -fx-border-color: #1e2a3a; " +
-            "-fx-cursor: hand; -fx-min-width: 280;"));
+        card.setPadding(new Insets(44, 52, 44, 52));
+        card.setMinWidth(300);
+        card.setStyle("-fx-background-color: #111827; -fx-background-radius: 18; -fx-border-color: #1e2d45; -fx-border-radius: 18; -fx-border-width: 2; -fx-cursor: hand;");
 
-        Label icon = new Label(emoji);
-        icon.setStyle("-fx-font-size: 64px;");
+        StackPane iconCircle = new StackPane();
+        Circle circle = new Circle(40, Color.web(bgColor + "33"));
+        Label iconLbl = new Label(emoji);
+        iconLbl.setStyle("-fx-font-size: 44px;");
+        iconCircle.getChildren().addAll(circle, iconLbl);
 
-        Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + gradTo + ";");
+        Label nameLbl = new Label(name);
+        nameLbl.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: " + accent + ";");
 
-        Label descLabel = new Label(desc);
-        descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #78909c; -fx-text-alignment: center;");
-        descLabel.setWrapText(true);
+        Region div = new Region();
+        div.setMinHeight(1); div.setMaxHeight(1);
+        div.setMinWidth(160); div.setMaxWidth(160);
+        div.setStyle("-fx-background-color: #1e2d45;");
 
-        Label selectLabel = new Label("Click to Select");
-        selectLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #37474f; -fx-padding: 8 0 0 0;");
+        Label l1 = new Label(line1);
+        l1.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
+        Label l2 = new Label(line2);
+        l2.setStyle("-fx-font-size: 12px; -fx-text-fill: #334155;");
 
-        card.getChildren().addAll(icon, nameLabel, descLabel, selectLabel);
+        Label selectHint = new Label("Click to select →");
+        selectHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #1e2d45;");
 
-        // Hover efekti
-        card.setOnMouseEntered(e -> card.setStyle(String.format(
-            "-fx-background-color: #0d1a2e; -fx-background-radius: 20; " +
-            "-fx-border-radius: 20; -fx-border-width: 2; -fx-border-color: " + gradTo + "; " +
-            "-fx-cursor: hand; -fx-min-width: 280; " +
-            "-fx-effect: dropshadow(gaussian, " + gradTo + "40, 24, 0.3, 0, 0);")));
-        card.setOnMouseExited(e -> card.setStyle(
-            "-fx-background-color: #151929; -fx-background-radius: 20; " +
-            "-fx-border-radius: 20; -fx-border-width: 2; -fx-border-color: #1e2a3a; " +
-            "-fx-cursor: hand; -fx-min-width: 280;"));
+        card.getChildren().addAll(iconCircle, nameLbl, div, l1, l2, selectHint);
+
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: #0f1e35; -fx-background-radius: 18; -fx-border-color: " + accent + "; -fx-border-radius: 18; -fx-border-width: 2; -fx-cursor: hand;");
+            selectHint.setStyle("-fx-font-size: 12px; -fx-text-fill: " + accent + ";");
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color: #111827; -fx-background-radius: 18; -fx-border-color: #1e2d45; -fx-border-radius: 18; -fx-border-width: 2; -fx-cursor: hand;");
+            selectHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #1e2d45;");
+        });
+        card.setOnMouseClicked(e -> {
+            SceneManager.resetGameManager();
+            SceneManager.getGameManager().selectSport(sport);
+            SceneManager.showTeamSetup();
+        });
 
         return card;
     }
