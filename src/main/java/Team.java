@@ -3,6 +3,9 @@ import java.util.List;
 
 public class Team {
 
+    private int goalsFor;
+    private int goalsAgainst;
+
     private String name;
     private List<Player> players;
     private List<Coach> coaches;
@@ -15,6 +18,9 @@ public class Team {
         this.coaches = new ArrayList<>();
         this.points = 0;
         this.tactic = "Balanced";
+
+        this.goalsFor = 0;
+        this.goalsAgainst = 0;
     }
 
     public String getName() {
@@ -61,6 +67,14 @@ public class Team {
             }
         }
         return available;
+    }
+    public void addMatchStats(int scored, int conceded) {
+        this.goalsFor += scored;
+        this.goalsAgainst += conceded;
+    }
+
+    public int getGoalDifference() {
+        return goalsFor - goalsAgainst;
     }
 
     @Override
