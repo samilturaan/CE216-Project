@@ -74,6 +74,7 @@ public class MatchResultScreen {
         ptsLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #334155;");
 
         VBox otherResultsBox = buildOtherResultsBox(gm, match);
+        VBox liveFeedBox = buildLiveFeedBox(match);
 
         long injured = userTeam.getPlayers().stream().filter(Player::isInjured).count();
         if (injured > 0) {
@@ -89,8 +90,72 @@ public class MatchResultScreen {
             else SceneManager.showMain();
         });
 
-        content.getChildren().addAll(badge, scoreCard, outcomeLbl, ptsLbl, otherResultsBox, continueBtn);
+        content.getChildren().addAll(badge, scoreCard, outcomeLbl, ptsLbl, liveFeedBox, otherResultsBox, continueBtn);
         root.getChildren().addAll(bg, content);
+    }
+
+    private VBox buildLiveFeedBox(Match match) {
+        VBox box = new VBox(8);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setMaxWidth(520);
+        box.setMaxHeight(180);
+        box.setPadding(new Insets(14, 18, 14, 18));
+        box.setStyle("-fx-background-color: #111827; -fx-background-radius: 12; -fx-border-color: #1e2d45; -fx-border-radius: 12; -fx-border-width: 1;");
+
+        Label title = new Label("LIVE MATCH CENTER");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        box.getChildren().add(title);
+
+        VBox eventList = new VBox(6);
+        if (match.getMatchEvents().isEmpty()) {
+            Label empty = new Label("No major events were recorded.");
+            empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #475569;");
+            eventList.getChildren().add(empty);
+        } else {
+            for (String event : match.getMatchEvents()) {
+                Label eventLabel = new Label(formatEvent(event));
+                eventLabel.setWrapText(true);
+                eventLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + getEventColor(event) + ";");
+                eventList.getChildren().add(eventLabel);
+            }
+        }
+
+        ScrollPane scrollPane = new ScrollPane(eventList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(130);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+        box.getChildren().add(scrollPane);
+
+        return box;
+    }
+
+    private String formatEvent(String event) {
+        if (event.contains("GOAL")) {
+            return "⚽  " + event;
+        }
+        if (event.contains("Injury")) {
+            return "🚑  " + event;
+        }
+        if (event.contains("Full time")) {
+            return "🏁  " + event;
+        }
+        if (event.contains("wins the set")) {
+            return "🏐  " + event;
+        }
+        return "•  " + event;
+    }
+
+    private String getEventColor(String event) {
+        if (event.contains("GOAL") || event.contains("wins the set")) {
+            return "#22c55e";
+        }
+        if (event.contains("Injury")) {
+            return "#ef4444";
+        }
+        if (event.contains("Full time")) {
+            return "#60a5fa";
+        }
+        return "#94a3b8";
     }
 
     private VBox buildOtherResultsBox(GameManager gm, Match userMatch) {

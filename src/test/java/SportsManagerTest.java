@@ -142,6 +142,44 @@ public class SportsManagerTest {
         assertEquals(22, player.getAge());
     }
 
+    @Test
+    public void testPlayerInitialStaminaMoraleAndStats() {
+        assertEquals(100, player.getStamina());
+        assertEquals(70, player.getMorale());
+        assertEquals(0, player.getGoalsScored());
+        assertEquals(0, player.getMatchesPlayed());
+    }
+
+    @Test
+    public void testPlayerPlayMatchUpdatesFatigueStats() {
+        player.playMatch();
+        assertEquals(1, player.getMatchesPlayed());
+        assertTrue(player.getStamina() < 100);
+        assertTrue(player.getMorale() < 70);
+    }
+
+    @Test
+    public void testPlayerScoreGoalUpdatesGoalAndMorale() {
+        player.scoreGoal();
+        assertEquals(1, player.getGoalsScored());
+        assertTrue(player.getMorale() > 70);
+    }
+
+    @Test
+    public void testPlayerStaminaAndMoraleAreClamped() {
+        player.setStamina(150);
+        player.setMorale(-20);
+        assertEquals(100, player.getStamina());
+        assertEquals(0, player.getMorale());
+    }
+
+    @Test
+    public void testPlayerRecoverStaminaDoesNotExceedHundred() {
+        player.setStamina(95);
+        player.recoverStamina();
+        assertEquals(100, player.getStamina());
+    }
+
     // ===========================
     // Coach Tests
     // ===========================
@@ -250,6 +288,54 @@ public class SportsManagerTest {
         assertEquals(-4, team.getGoalDifference());
     }
 
+    @Test
+    public void testTeamRecentFormKeepsOnlyLastFiveResults() {
+        team.addFormResult("W");
+        team.addFormResult("D");
+        team.addFormResult("L");
+        team.addFormResult("W");
+        team.addFormResult("W");
+        team.addFormResult("D");
+
+        assertEquals(5, team.getRecentForm().size());
+        assertEquals("D", team.getRecentForm().get(0));
+        assertEquals("D", team.getRecentForm().get(4));
+    }
+
+    @Test
+    public void testTeamFormString() {
+        team.addFormResult("W");
+        team.addFormResult("D");
+        team.addFormResult("L");
+        assertEquals("W D L", team.getFormString());
+    }
+
+    @Test
+    public void testTeamTopScorer() {
+        Player p1 = new Player("Player One", 24, "Forward", 80);
+        Player p2 = new Player("Player Two", 26, "Forward", 82);
+        p1.scoreGoal();
+        p2.scoreGoal();
+        p2.scoreGoal();
+        team.addPlayer(p1);
+        team.addPlayer(p2);
+
+        assertEquals("Player Two", team.getTopScorer().getName());
+    }
+
+    @Test
+    public void testTeamTotalGoalsScoredByPlayers() {
+        Player p1 = new Player("Player One", 24, "Forward", 80);
+        Player p2 = new Player("Player Two", 26, "Forward", 82);
+        p1.scoreGoal();
+        p2.scoreGoal();
+        p2.scoreGoal();
+        team.addPlayer(p1);
+        team.addPlayer(p2);
+
+        assertEquals(3, team.getTotalGoalsScoredByPlayers());
+    }
+
     // ===========================
     // Match Tests
     // ===========================
@@ -320,6 +406,53 @@ public class SportsManagerTest {
         assertEquals(match.getHomeScore(), away.getGoalsAgainst());
     }
 
+    @Test
+    public void testMatchSimulationCreatesMatchEvents() {
+        Team home = new Team("Home");
+        Team away = new Team("Away");
+        home.addPlayer(new Player("Home Player", 24, "Forward", 80));
+        away.addPlayer(new Player("Away Player", 25, "Forward", 78));
+
+        Match match = new Match(home, away, football);
+        match.simulateMatch();
+
+        assertFalse(match.getMatchEvents().isEmpty());
+        assertTrue(match.getMatchEvents().get(match.getMatchEvents().size() - 1).contains("Full time"));
+    }
+
+    @Test
+    public void testMatchSimulationUpdatesPlayerMatchStats() {
+        Team home = new Team("Home");
+        Team away = new Team("Away");
+        Player homePlayer = new Player("Home Player", 24, "Forward", 80);
+        Player awayPlayer = new Player("Away Player", 25, "Forward", 78);
+        home.addPlayer(homePlayer);
+        away.addPlayer(awayPlayer);
+
+        Match match = new Match(home, away, football);
+        match.simulateMatch();
+
+        assertEquals(1, homePlayer.getMatchesPlayed());
+        assertEquals(1, awayPlayer.getMatchesPlayed());
+        assertTrue(homePlayer.getStamina() <= 100);
+        assertTrue(awayPlayer.getStamina() <= 100);
+    }
+
+    @Test
+    public void testMatchScorerTrackingDoesNotExceedMatchGoals() {
+        Team home = new Team("Home");
+        Team away = new Team("Away");
+        home.addPlayer(new Player("Home Player", 24, "Forward", 80));
+        away.addPlayer(new Player("Away Player", 25, "Forward", 78));
+
+        Match match = new Match(home, away, football);
+        match.simulateMatch();
+
+        int playerGoals = home.getTotalGoalsScoredByPlayers() + away.getTotalGoalsScoredByPlayers();
+        int matchGoals = match.getHomeScore() + match.getAwayScore();
+        assertTrue(playerGoals <= matchGoals);
+    }
+
     // ===========================
     // League Tests
     // ===========================
@@ -344,6 +477,60 @@ public class SportsManagerTest {
         league.generateFixtures();
         List<Team> standings = league.getStandings();
         assertEquals("Leader", standings.get(0).getName());
+    }
+
+    @Test
+    public void testLeagueStandingsUseGoalDifferenceAsTieBreaker() {
+        Team t1 = new Team("Better GD");
+        Team t2 = new Team("Worse GD");
+
+        t1.addPoints(6);
+        t2.addPoints(6);
+        t1.recordWin(5, 1);
+        t2.recordWin(2, 1);
+
+        league.addTeam(t1);
+        league.addTeam(t2);
+        league.generateFixtures();
+
+        List<Team> standings = league.getStandings();
+        assertEquals("Better GD", standings.get(0).getName());
+    }
+
+    @Test
+    public void testLeagueStandingsUseGoalsForAsTieBreaker() {
+        Team t1 = new Team("More Goals");
+        Team t2 = new Team("Fewer Goals");
+
+        t1.addPoints(6);
+        t2.addPoints(6);
+        t1.recordWin(4, 2);
+        t2.recordWin(3, 1);
+
+        league.addTeam(t1);
+        league.addTeam(t2);
+        league.generateFixtures();
+
+        List<Team> standings = league.getStandings();
+        assertEquals("More Goals", standings.get(0).getName());
+    }
+
+    @Test
+    public void testLeagueStandingsUseNameAsFinalFallback() {
+        Team t1 = new Team("Alpha FC");
+        Team t2 = new Team("Beta FC");
+
+        t1.addPoints(6);
+        t2.addPoints(6);
+        t1.recordWin(2, 1);
+        t2.recordWin(2, 1);
+
+        league.addTeam(t2);
+        league.addTeam(t1);
+        league.generateFixtures();
+
+        List<Team> standings = league.getStandings();
+        assertEquals("Alpha FC", standings.get(0).getName());
     }
 
     @Test

@@ -90,37 +90,57 @@ public class League implements java.io.Serializable {
             public int compare(Team t1, Team t2) {
 
                 if (t1.getPoints() != t2.getPoints()) {
-                    return t2.getPoints() - t1.getPoints();
+                    return Integer.compare(t2.getPoints(), t1.getPoints());
                 }
 
-                int h2hT1 = 0;
-                int h2hT2 = 0;
-                for (Match m : fixtures) {
-                    if (m.isPlayed()) {
-                        if (m.getHomeTeam() == t1 && m.getAwayTeam() == t2) {
-                            if (m.getHomeScore() > m.getAwayScore()) h2hT1 += sport.getPointsForWin();
-                            else if (m.getHomeScore() < m.getAwayScore()) h2hT2 += sport.getPointsForWin();
-
-                        } else if (m.getHomeTeam() == t2 && m.getAwayTeam() == t1) {
-                            if (m.getAwayScore() > m.getHomeScore()) h2hT1 += sport.getPointsForWin();
-                            else if (m.getAwayScore() < m.getHomeScore()) h2hT2 += sport.getPointsForWin();
-
-                        }
-                    }
-                }
+                int h2hT1 = calculateHeadToHeadPoints(t1, t2);
+                int h2hT2 = calculateHeadToHeadPoints(t2, t1);
 
                 if (h2hT1 != h2hT2) {
-                    return h2hT2 - h2hT1;
+                    return Integer.compare(h2hT2, h2hT1);
                 }
 
                 if (t1.getGoalDifference() != t2.getGoalDifference()) {
-                    return t2.getGoalDifference() - t1.getGoalDifference();
+                    return Integer.compare(t2.getGoalDifference(), t1.getGoalDifference());
+                }
+
+                if (t1.getGoalsFor() != t2.getGoalsFor()) {
+                    return Integer.compare(t2.getGoalsFor(), t1.getGoalsFor());
                 }
 
                 return t1.getName().compareTo(t2.getName());
             }
         });
         return table;
+    }
+
+    private int calculateHeadToHeadPoints(Team team, Team opponent) {
+        int points = 0;
+
+        for (Match match : fixtures) {
+            if (!match.isPlayed()) {
+                continue;
+            }
+
+            boolean teamHome = match.getHomeTeam() == team && match.getAwayTeam() == opponent;
+            boolean teamAway = match.getAwayTeam() == team && match.getHomeTeam() == opponent;
+
+            if (teamHome) {
+                if (match.getHomeScore() > match.getAwayScore()) {
+                    points += sport.getPointsForWin();
+                } else if (match.getHomeScore() == match.getAwayScore()) {
+                    points += sport.getPointsForDraw();
+                }
+            } else if (teamAway) {
+                if (match.getAwayScore() > match.getHomeScore()) {
+                    points += sport.getPointsForWin();
+                } else if (match.getAwayScore() == match.getHomeScore()) {
+                    points += sport.getPointsForDraw();
+                }
+            }
+        }
+
+        return points;
     }
 
     public boolean seasonFinished() {

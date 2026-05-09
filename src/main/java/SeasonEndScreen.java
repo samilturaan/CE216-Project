@@ -58,6 +58,8 @@ public class SeasonEndScreen {
                 summaryBox("GOAL DIFF", String.valueOf(userTeam.getGoalDifference()))
         );
 
+        VBox awardsCard = buildAwardsCard(standings);
+
         VBox standingsCard = new VBox(10);
         standingsCard.setPadding(new Insets(20));
         standingsCard.setMaxWidth(480);
@@ -91,8 +93,119 @@ public class SeasonEndScreen {
         newGameBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 12 36 12 36; -fx-border-width: 0;");
         newGameBtn.setOnAction(e -> SceneManager.showSplash());
 
-        content.getChildren().addAll(badge, icon, titleLbl, subLbl, summaryCards, standingsCard, newGameBtn);
+        content.getChildren().addAll(badge, icon, titleLbl, subLbl, summaryCards, awardsCard, standingsCard, newGameBtn);
         root.getChildren().addAll(bg, content);
+    }
+
+    private VBox buildAwardsCard(List<Team> standings) {
+        VBox card = new VBox(12);
+        card.setPadding(new Insets(20));
+        card.setMaxWidth(620);
+        card.setStyle("-fx-background-color: #111827; -fx-background-radius: 14; -fx-border-color: #1e2d45; -fx-border-radius: 14; -fx-border-width: 1;");
+
+        Label title = new Label("SEASON AWARDS");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        HBox awardRow = new HBox(12);
+        awardRow.setAlignment(Pos.CENTER);
+        awardRow.getChildren().addAll(
+                awardBox("🏅", "TOP SCORER", getTopScorerText(standings)),
+                awardBox("🔥", "BEST ATTACK", getBestAttackText(standings)),
+                awardBox("🛡", "BEST DEFENSE", getBestDefenseText(standings)),
+                awardBox("📈", "BEST FORM", getBestFormText(standings))
+        );
+
+        card.getChildren().addAll(title, awardRow);
+        return card;
+    }
+
+    private VBox awardBox(String icon, String title, String value) {
+        VBox box = new VBox(6);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(12));
+        box.setPrefWidth(140);
+        box.setMinHeight(105);
+        box.setStyle("-fx-background-color: #0d1222; -fx-background-radius: 12; -fx-border-color: #1e2d45; -fx-border-radius: 12; -fx-border-width: 1;");
+
+        Label iconLabel = new Label(icon);
+        iconLabel.setStyle("-fx-font-size: 24px;");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Label valueLabel = new Label(value);
+        valueLabel.setWrapText(true);
+        valueLabel.setAlignment(Pos.CENTER);
+        valueLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+
+        box.getChildren().addAll(iconLabel, titleLabel, valueLabel);
+        return box;
+    }
+
+    private String getTopScorerText(List<Team> teams) {
+        Player topPlayer = null;
+        Team topTeam = null;
+
+        for (Team team : teams) {
+            Player candidate = team.getTopScorer();
+            if (candidate != null && (topPlayer == null || candidate.getGoalsScored() > topPlayer.getGoalsScored())) {
+                topPlayer = candidate;
+                topTeam = team;
+            }
+        }
+
+        if (topPlayer == null) {
+            return "No scorer";
+        }
+
+        return topPlayer.getName() + " (" + topPlayer.getGoalsScored() + ") - " + topTeam.getName();
+    }
+
+    private String getBestAttackText(List<Team> teams) {
+        Team best = teams.get(0);
+        for (Team team : teams) {
+            if (team.getGoalsFor() > best.getGoalsFor()) {
+                best = team;
+            }
+        }
+        return best.getName() + " (" + best.getGoalsFor() + " GF)";
+    }
+
+    private String getBestDefenseText(List<Team> teams) {
+        Team best = teams.get(0);
+        for (Team team : teams) {
+            if (team.getGoalsAgainst() < best.getGoalsAgainst()) {
+                best = team;
+            }
+        }
+        return best.getName() + " (" + best.getGoalsAgainst() + " GA)";
+    }
+
+    private String getBestFormText(List<Team> teams) {
+        Team best = teams.get(0);
+        int bestScore = calculateFormScore(best);
+
+        for (Team team : teams) {
+            int score = calculateFormScore(team);
+            if (score > bestScore) {
+                best = team;
+                bestScore = score;
+            }
+        }
+
+        return best.getName() + " (" + best.getFormString() + ")";
+    }
+
+    private int calculateFormScore(Team team) {
+        int score = 0;
+        for (String result : team.getRecentForm()) {
+            if (result.equals("W")) {
+                score += 3;
+            } else if (result.equals("D")) {
+                score += 1;
+            }
+        }
+        return score;
     }
 
     private VBox summaryBox(String title, String value) {

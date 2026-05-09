@@ -170,7 +170,8 @@ public class MainScreen {
                 statCard("POINTS", String.valueOf(userTeam.getPoints()), "#3b82f6"),
                 statCard("SQUAD", String.valueOf(userTeam.getPlayers().size()), "#22c55e"),
                 statCard("AVAILABLE", String.valueOf(userTeam.getAvailablePlayers().size()), "#f59e0b"),
-                statCard("POSITION", getPos(userTeam), "#a78bfa")
+                statCard("POSITION", getPos(userTeam), "#a78bfa"),
+                statCard("FORM", userTeam.getFormString(), "#60a5fa")
         );
 
         HBox cols = new HBox(16);
@@ -180,9 +181,16 @@ public class MainScreen {
         HBox.setHgrow(tactic, Priority.ALWAYS);
         cols.getChildren().addAll(nextMatch, tactic);
 
+        HBox insightRow = new HBox(16);
+        VBox formBox = buildFormGraphCard(userTeam);
+        VBox topScorerBox = buildTopScorerCard(userTeam);
+        HBox.setHgrow(formBox, Priority.ALWAYS);
+        HBox.setHgrow(topScorerBox, Priority.ALWAYS);
+        insightRow.getChildren().addAll(formBox, topScorerBox);
+
         VBox recentBox = buildRecentResults();
 
-        pane.getChildren().addAll(hdr, statRow, cols, recentBox);
+        pane.getChildren().addAll(hdr, statRow, cols, insightRow, recentBox);
 
         ScrollPane sp2 = new ScrollPane(pane);
         sp2.setFitToWidth(true);
@@ -200,6 +208,92 @@ public class MainScreen {
         Label lblLbl = new Label(label);
         lblLbl.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #334155;");
         card.getChildren().addAll(valLbl, lblLbl);
+        return card;
+    }
+
+    private VBox buildFormGraphCard(Team team) {
+        VBox card = new VBox(12);
+        card.setPadding(new Insets(20));
+        card.setStyle("-fx-background-color: #111827; -fx-background-radius: 14; -fx-border-color: #1e2d45; -fx-border-radius: 14; -fx-border-width: 1;");
+
+        Label title = new Label("LAST 5 MATCHES");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        HBox formRow = new HBox(10);
+        formRow.setAlignment(Pos.CENTER_LEFT);
+
+        if (team.getRecentForm().isEmpty()) {
+            Label empty = new Label("No matches played yet");
+            empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #475569;");
+            formRow.getChildren().add(empty);
+        } else {
+            for (String result : team.getRecentForm()) {
+                Label badge = new Label(result);
+                badge.setMinSize(36, 36);
+                badge.setAlignment(Pos.CENTER);
+                badge.setStyle(getFormBadgeStyle(result));
+                formRow.getChildren().add(badge);
+            }
+        }
+
+        Label explanation = new Label("Form updates after each league match and affects team momentum.");
+        explanation.setWrapText(true);
+        explanation.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+
+        card.getChildren().addAll(title, formRow, explanation);
+        return card;
+    }
+
+    private String getFormBadgeStyle(String result) {
+        if (result.equals("W")) {
+            return "-fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-background-radius: 18;";
+        }
+        if (result.equals("D")) {
+            return "-fx-background-color: #422006; -fx-text-fill: #f59e0b; -fx-font-weight: bold; -fx-background-radius: 18;";
+        }
+        return "-fx-background-color: #450a0a; -fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-background-radius: 18;";
+    }
+
+    private VBox buildTopScorerCard(Team team) {
+        VBox card = new VBox(12);
+        card.setPadding(new Insets(20));
+        card.setStyle("-fx-background-color: #111827; -fx-background-radius: 14; -fx-border-color: #1e2d45; -fx-border-radius: 14; -fx-border-width: 1;");
+
+        Label title = new Label("TEAM TOP SCORER");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Player topScorer = team.getTopScorer();
+        if (topScorer == null) {
+            Label empty = new Label("No players available");
+            empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #475569;");
+            card.getChildren().addAll(title, empty);
+            return card;
+        }
+
+        HBox playerLine = new HBox(12);
+        playerLine.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane avatar = new StackPane();
+        Circle circle = new Circle(24);
+        circle.setFill(Color.web("#1e3a5f"));
+        Label initials = new Label(getInitials(topScorer.getName()));
+        initials.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        avatar.getChildren().addAll(circle, initials);
+
+        VBox textBox = new VBox(2);
+        Label name = new Label(topScorer.getName());
+        name.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label details = new Label(topScorer.getPosition() + " • " + topScorer.getGoalsScored() + " goals • " + topScorer.getMatchesPlayed() + " apps");
+        details.setStyle("-fx-font-size: 12px; -fx-text-fill: #60a5fa;");
+        textBox.getChildren().addAll(name, details);
+
+        playerLine.getChildren().addAll(avatar, textBox);
+
+        Label note = new Label("Goals are tracked from the live match engine.");
+        note.setWrapText(true);
+        note.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+
+        card.getChildren().addAll(title, playerLine, note);
         return card;
     }
 
@@ -376,45 +470,127 @@ public class MainScreen {
             coachCard.getChildren().add(row);
         }
 
-        Label playersTitle = new Label("PLAYERS");
+        Label playersTitle = new Label("PLAYER CARDS");
         playersTitle.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
 
-        VBox playerRows = new VBox(6);
-        HBox hdr = new HBox(0);
-        hdr.setPadding(new Insets(8, 16, 8, 16));
-        hdr.setStyle("-fx-background-color: #0d1222; -fx-background-radius: 8;");
-        addCol(hdr, "NAME", 220, "#334155");
-        addCol(hdr, "AGE", 60, "#334155");
-        addCol(hdr, "POSITION", 120, "#334155");
-        addCol(hdr, "SKILL", 80, "#334155");
-        addCol(hdr, "STATUS", 140, "#334155");
-        playerRows.getChildren().add(hdr);
+        FlowPane playerCards = new FlowPane();
+        playerCards.setHgap(14);
+        playerCards.setVgap(14);
+        playerCards.setPrefWrapLength(900);
 
-        for (int i = 0; i < userTeam.getPlayers().size(); i++) {
-            Player p = userTeam.getPlayers().get(i);
-            HBox row = new HBox(0);
-            row.setPadding(new Insets(11, 16, 11, 16));
-            row.setStyle(i % 2 == 0
-                    ? "-fx-background-color: #111827; -fx-background-radius: 8;"
-                    : "-fx-background-color: #0e1520; -fx-background-radius: 8;");
-            addCol(row, p.getName(), 220, "#94a3b8");
-            addCol(row, String.valueOf(p.getAge()), 60, "#64748b");
-            addCol(row, p.getPosition(), 120, "#64748b");
-            addCol(row, String.valueOf(p.getSkillLevel()), 80, "#3b82f6");
-
-            Label statusLbl = new Label(p.isInjured() ? "Injured (" + p.getMatchesUntilFit() + ")" : "Available");
-            statusLbl.getStyleClass().add(p.isInjured() ? "badge-injured" : "badge-fit");
-            HBox statusWrap = new HBox(statusLbl);
-            statusWrap.setMinWidth(140);
-            row.getChildren().add(statusWrap);
-            playerRows.getChildren().add(row);
+        for (Player p : userTeam.getPlayers()) {
+            playerCards.getChildren().add(buildPlayerCard(p));
         }
 
-        pane.getChildren().addAll(title, coachCard, playersTitle, playerRows);
+        pane.getChildren().addAll(title, coachCard, playersTitle, playerCards);
         ScrollPane sp = new ScrollPane(pane);
         sp.setFitToWidth(true);
         sp.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
         return sp;
+    }
+
+    private VBox buildPlayerCard(Player player) {
+        VBox card = new VBox(10);
+        card.setPadding(new Insets(16));
+        card.setPrefWidth(220);
+        card.setMinHeight(210);
+        card.setStyle(player.isInjured()
+                ? "-fx-background-color: #1f1115; -fx-background-radius: 14; -fx-border-color: #7f1d1d; -fx-border-radius: 14; -fx-border-width: 1;"
+                : "-fx-background-color: #111827; -fx-background-radius: 14; -fx-border-color: #1e2d45; -fx-border-radius: 14; -fx-border-width: 1;");
+
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane avatar = new StackPane();
+        Circle avatarCircle = new Circle(24);
+        avatarCircle.setFill(player.isInjured() ? Color.web("#7f1d1d") : Color.web("#1e3a5f"));
+        Label initials = new Label(getInitials(player.getName()));
+        initials.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        avatar.getChildren().addAll(avatarCircle, initials);
+
+        VBox nameBox = new VBox(2);
+        Label name = new Label(player.getName());
+        name.setWrapText(true);
+        name.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label position = new Label(player.getPosition());
+        position.setStyle("-fx-font-size: 11px; -fx-text-fill: #60a5fa;");
+        nameBox.getChildren().addAll(name, position);
+        header.getChildren().addAll(avatar, nameBox);
+
+        HBox ratingRow = new HBox(12);
+        ratingRow.setAlignment(Pos.CENTER_LEFT);
+        ratingRow.getChildren().addAll(
+                miniStat("OVR", String.valueOf(player.getSkillLevel()), "#3b82f6"),
+                miniStat("AGE", String.valueOf(player.getAge()), "#94a3b8"),
+                miniStat("GLS", String.valueOf(player.getGoalsScored()), "#22c55e")
+        );
+
+        VBox bars = new VBox(8);
+        bars.getChildren().addAll(
+                progressLine("STAMINA", player.getStamina(), getStaminaColor(player.getStamina())),
+                progressLine("MORALE", player.getMorale(), "#a78bfa")
+        );
+
+        Label status = new Label(player.isInjured() ? "🚑 Injured for " + player.getMatchesUntilFit() + " match(es)" : "✅ Available");
+        status.setStyle(player.isInjured()
+                ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #ef4444;"
+                : "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #22c55e;");
+
+        card.getChildren().addAll(header, ratingRow, bars, status);
+        return card;
+    }
+
+    private VBox miniStat(String title, String value, String color) {
+        VBox box = new VBox(2);
+        box.setAlignment(Pos.CENTER);
+        box.setMinWidth(52);
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        box.getChildren().addAll(valueLabel, titleLabel);
+        return box;
+    }
+
+    private VBox progressLine(String label, int value, String color) {
+        VBox box = new VBox(4);
+        HBox top = new HBox();
+        Label title = new Label(label);
+        title.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label valueLabel = new Label(value + "%");
+        valueLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #64748b;");
+        top.getChildren().addAll(title, spacer, valueLabel);
+
+        ProgressBar bar = new ProgressBar(value / 100.0);
+        bar.setMaxWidth(Double.MAX_VALUE);
+        bar.setPrefHeight(8);
+        bar.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: #0d1222;");
+
+        box.getChildren().addAll(top, bar);
+        return box;
+    }
+
+    private String getInitials(String name) {
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length == 0 || parts[0].isEmpty()) {
+            return "?";
+        }
+        if (parts.length == 1) {
+            return parts[0].substring(0, 1).toUpperCase();
+        }
+        return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+    }
+
+    private String getStaminaColor(int stamina) {
+        if (stamina >= 70) {
+            return "#22c55e";
+        }
+        if (stamina >= 35) {
+            return "#f59e0b";
+        }
+        return "#ef4444";
     }
 
     private void addCol(HBox row, String text, double width, String color) {
@@ -574,39 +750,18 @@ public class MainScreen {
     }
 
     private void doPlay() {
-        if (gm.isSeasonFinished()) { SceneManager.showSeasonEnd(); return; }
-        Match match = getNextUserMatch(gm.getLeague());
-        if (match == null) { SceneManager.showSeasonEnd(); return; }
-
-        Team userTeam = gm.getUserTeam();
-
-        while (!match.isPlayed()) {
-            match.playNextPeriod();
-
-            if (!match.isPlayed()) {
-                String periodName = match.getSport().getPeriodName();
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle(periodName + " " + (match.getCurrentPeriod() - 1) + " Ended");
-                alert.setHeaderText(match.getHomeTeam().getName() + "  " + match.getHomeScore() + " - " + match.getAwayScore() + "  " + match.getAwayTeam().getName());
-                alert.setContentText(periodName + " finished! Change your tactic for the next " + periodName.toLowerCase() + "?");
-
-                ButtonType btnAttack = new ButtonType("Attacking");
-                ButtonType btnBalanced = new ButtonType("Balanced");
-                ButtonType btnDefensive = new ButtonType("Defensive");
-
-                alert.getButtonTypes().setAll(btnAttack, btnBalanced, btnDefensive);
-
-                java.util.Optional<ButtonType> result = alert.showAndWait();
-                if (result.isPresent()) {
-                    if (result.get() == btnAttack) userTeam.setTactic("Attacking");
-                    else if (result.get() == btnDefensive) userTeam.setTactic("Defensive");
-                    else userTeam.setTactic("Balanced");
-                }
-            }
+        if (gm.isSeasonFinished()) {
+            SceneManager.showSeasonEnd();
+            return;
         }
 
-        gm.playNextWeek();
-        SceneManager.showMatchResult(match);
+        Match match = getNextUserMatch(gm.getLeague());
+        if (match == null) {
+            SceneManager.showSeasonEnd();
+            return;
+        }
+
+        SceneManager.showLiveMatch(match);
     }
 
     private void showAlert(String title, String msg) {

@@ -58,6 +58,12 @@ public class SceneManager {
         stage.setScene(scene);
     }
 
+    public static void showLiveMatch(Match match) {
+        LiveMatchScreen screen = new LiveMatchScreen(match, gameManager);
+        Scene scene = new Scene(screen.getRoot(), 1280, 820);
+        stage.setScene(scene);
+    }
+
     public static void showSeasonEnd() {
         SeasonEndScreen screen = new SeasonEndScreen();
         Scene scene = new Scene(screen.getRoot(), 1100, 750);

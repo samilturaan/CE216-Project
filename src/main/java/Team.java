@@ -8,6 +8,7 @@ public class Team implements java.io.Serializable {
     private int wins;
     private int draws;
     private int losses;
+    private List<String> recentForm;
 
     private String name;
     private List<Player> players;
@@ -27,6 +28,7 @@ public class Team implements java.io.Serializable {
         this.wins = 0;
         this.draws = 0;
         this.losses = 0;
+        this.recentForm = new ArrayList<>();
     }
 
     public String getName() {
@@ -65,6 +67,10 @@ public class Team implements java.io.Serializable {
         return losses;
     }
 
+    public List<String> getRecentForm() {
+        return recentForm;
+    }
+
     public String getTactic() {
         return tactic;
     }
@@ -97,16 +103,34 @@ public class Team implements java.io.Serializable {
     public void recordWin(int scored, int conceded) {
         wins++;
         addMatchStats(scored, conceded);
+        addFormResult("W");
+
+        for (Player player : getAvailablePlayers()) {
+            player.increaseMorale(3);
+            player.recoverStamina();
+        }
     }
 
     public void recordDraw(int scored, int conceded) {
         draws++;
         addMatchStats(scored, conceded);
+        addFormResult("D");
+
+        for (Player player : getAvailablePlayers()) {
+            player.increaseMorale(1);
+            player.recoverStamina();
+        }
     }
 
     public void recordLoss(int scored, int conceded) {
         losses++;
         addMatchStats(scored, conceded);
+        addFormResult("L");
+
+        for (Player player : getAvailablePlayers()) {
+            player.decreaseMorale(3);
+            player.recoverStamina();
+        }
     }
 
     public void addMatchStats(int scored, int conceded) {
@@ -116,6 +140,50 @@ public class Team implements java.io.Serializable {
 
     public int getGoalDifference() {
         return goalsFor - goalsAgainst;
+    }
+
+    public void addFormResult(String result) {
+        recentForm.add(result);
+
+        if (recentForm.size() > 5) {
+            recentForm.remove(0);
+        }
+    }
+
+    public String getFormString() {
+        if (recentForm.isEmpty()) {
+            return "-";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (String result : recentForm) {
+            builder.append(result).append(" ");
+        }
+
+        return builder.toString().trim();
+    }
+
+    public int getTotalGoalsScoredByPlayers() {
+        int total = 0;
+        for (Player player : players) {
+            total += player.getGoalsScored();
+        }
+        return total;
+    }
+
+    public Player getTopScorer() {
+        if (players.isEmpty()) {
+            return null;
+        }
+
+        Player top = players.get(0);
+        for (Player player : players) {
+            if (player.getGoalsScored() > top.getGoalsScored()) {
+                top = player;
+            }
+        }
+
+        return top;
     }
 
     @Override
