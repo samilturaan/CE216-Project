@@ -104,11 +104,11 @@ public class GameManager implements java.io.Serializable{
         return "Player";
     }
 
-    public boolean trainUserTeam() {
+    public boolean trainUserTeam(String type) {
         if (userTeam == null || isSeasonFinished() || trainingsThisWeek >= MAX_TRAININGS_PER_WEEK) {
             return false;
         }
-
+        training.setTrainingType(type);
         training.applyTraining(userTeam);
         trainingsThisWeek++;
         return true;

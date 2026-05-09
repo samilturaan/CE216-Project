@@ -11,6 +11,7 @@ public class MainScreen {
     private GameManager gm;
     private VBox contentArea;
     private String activeTab = "dashboard";
+    private String selectedFocusResult = null;
 
     public MainScreen() {
         gm = SceneManager.getGameManager();
@@ -82,7 +83,7 @@ public class MainScreen {
         Button saveBtn = fmNavBtn("💾", "Save Game", "save");
         saveBtn.setOnAction(e -> {
             gm.saveGame("savegame.dat");
-            showAlert("💾 Saved", "Oyunun başarıyla kaydedildi!");
+            showTechAlert("💾", "DATA SAVED", "Oyunun başarıyla kaydedildi!", "#3b82f6");
         });
 
         Region spacer = new Region();
@@ -145,7 +146,7 @@ public class MainScreen {
             case "settings"  -> contentArea.getChildren().add(buildSettings());
             case "save"      -> {
                 gm.saveGame("savegame.dat");
-                showAlert("💾 Saved", "Game saved successfully.");
+                showTechAlert("💾", "DATA SAVED", "Game progress has been securely written to disk.", "#3b82f6");
                 activeTab = "dashboard";
                 contentArea.getChildren().add(buildDashboard());
             }
@@ -714,7 +715,7 @@ public class MainScreen {
         saveGameBtn.setStyle("-fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 12 20 12 20; -fx-border-width: 0;");
         saveGameBtn.setOnAction(e -> {
             gm.saveGame("savegame.dat");
-            showAlert("💾 Saved", "Game saved successfully.");
+            showTechAlert("💾", "DATA SAVED", "Game progress has been saved succesfully!", "#3b82f6");
         });
 
         Button exitBtn = new Button("🚪  Exit to Desktop");
@@ -799,20 +800,32 @@ public class MainScreen {
     private void doTrain() {
         if (gm.isSeasonFinished() || getNextUserMatch(gm.getLeague()) == null) {
             activeTab = "standings";
-            showAlert("Season Finished", "Your season is over. Training is no longer available.");
+            showTechAlert("🚫", "TRAINING OFFLINE", "Season concluded. Training facilities are closed.", "#ef4444");
             showTab("standings");
             return;
         }
+        String type = showTechChoiceDialog();
 
-        boolean trained = gm.trainUserTeam();
+        if (type == null) {
+            showTab("dashboard");
+            return;
+        }
+        boolean trained = gm.trainUserTeam(type);
         activeTab = "dashboard";
 
         if (trained) {
-            showAlert("✅ Training Complete", "Training completed (" + gm.getTrainingsThisWeek() + "/" + gm.getMaxTrainingsPerWeek() + ").");
-        } else {
-            showAlert("Training Limit Reached", "You can train a maximum of " + gm.getMaxTrainingsPerWeek() + " times per week.");
-        }
+            String alertColor = type.equals("Stamina") ? "#22c55e" : "#a78bfa";
 
+            showTechAlert("⚡", "SQUAD OPTIMIZED",
+                    type.toUpperCase() + " focus sequence complete. Weekly limit: " +
+                            gm.getTrainingsThisWeek() + "/" + gm.getMaxTrainingsPerWeek(),
+                    alertColor);
+        } else {
+
+            showTechAlert("⚠", "CAPACITY REACHED",
+                    "Maximum weekly sessions reached. Players require recovery.",
+                    "#f59e0b");
+        }
         showTab("dashboard");
     }
 
@@ -831,10 +844,99 @@ public class MainScreen {
         SceneManager.showLiveMatch(match);
     }
 
-    private void showAlert(String title, String msg) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(title); a.setHeaderText(null); a.setContentText(msg);
-        a.showAndWait();
+
+    private void showTechAlert(String icon, String title, String message, String color) {
+        javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+        dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+        if (root.getScene() != null && root.getScene().getWindow() != null) {
+            dialogStage.initOwner(root.getScene().getWindow());
+        }
+
+        dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+
+        VBox pane = new VBox(15);
+        pane.setAlignment(Pos.CENTER);
+        pane.setPadding(new Insets(30, 50, 30, 50));
+        // Siberpunk tarzı neon kenarlıklı tasarım
+        pane.setStyle("-fx-background-color: #0d1222; -fx-border-color: " + color + "; -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12;");
+
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 40px;");
+
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+
+        Label msgLbl = new Label(message);
+        msgLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
+
+        Button okBtn = new Button("ACKNOWLEDGE");
+        okBtn.setStyle("-fx-background-color: transparent; -fx-border-color: " + color + "; -fx-border-radius: 6; -fx-text-fill: " + color + "; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 8 24 8 24;");
+
+        okBtn.setOnMouseEntered(e -> okBtn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: #0d1222; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 24 8 24;"));
+        okBtn.setOnMouseExited(e -> okBtn.setStyle("-fx-background-color: transparent; -fx-border-color: " + color + "; -fx-border-radius: 6; -fx-text-fill: " + color + "; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 8 24 8 24;"));
+
+        okBtn.setOnAction(e -> dialogStage.close());
+
+        pane.getChildren().addAll(iconLbl, titleLbl, msgLbl, okBtn);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(pane);
+
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
+    }
+    private String showTechChoiceDialog() {
+        selectedFocusResult = null; // Reset
+        javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+        dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+        if (root.getScene() != null && root.getScene().getWindow() != null) {
+            dialogStage.initOwner(root.getScene().getWindow());
+        }
+        dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+
+        VBox pane = new VBox(20);
+        pane.setAlignment(Pos.CENTER);
+        pane.setPadding(new Insets(35, 50, 35, 50));
+        pane.setStyle("-fx-background-color: #0d1222; -fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 15; -fx-background-radius: 15;");
+
+        Label title = new Label("SELECT TRAINING PROTOCOL");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff; -fx-letter-spacing: 2px;");
+
+        Label sub = new Label("Choose the primary focus for the current sequence:");
+        sub.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+
+        HBox options = new HBox(15);
+        options.setAlignment(Pos.CENTER);
+
+        Button staminaBtn = new Button("PHYSICAL\n(STAMINA)");
+        staminaBtn.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        staminaBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #22c55e; -fx-border-radius: 8; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-padding: 15 25; -fx-cursor: hand;");
+        staminaBtn.setOnAction(e -> { selectedFocusResult = "Stamina"; dialogStage.close(); });
+
+        Button moraleBtn = new Button("MENTAL\n(MORALE)");
+        moraleBtn.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        moraleBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #a78bfa; -fx-border-radius: 8; -fx-text-fill: #a78bfa; -fx-font-weight: bold; -fx-padding: 15 25; -fx-cursor: hand;");
+        moraleBtn.setOnAction(e -> { selectedFocusResult = "Morale"; dialogStage.close(); });
+
+        staminaBtn.setOnMouseEntered(e -> staminaBtn.setStyle("-fx-background-color: #22c55e22; -fx-border-color: #22c55e; -fx-border-radius: 8; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-padding: 15 25; -fx-cursor: hand;"));
+        staminaBtn.setOnMouseExited(e -> staminaBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #22c55e; -fx-border-radius: 8; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-padding: 15 25; -fx-cursor: hand;"));
+        moraleBtn.setOnMouseEntered(e -> moraleBtn.setStyle("-fx-background-color: #a78bfa22; -fx-border-color: #a78bfa; -fx-border-radius: 8; -fx-text-fill: #a78bfa; -fx-font-weight: bold; -fx-padding: 15 25; -fx-cursor: hand;"));
+        moraleBtn.setOnMouseExited(e -> moraleBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #a78bfa; -fx-border-radius: 8; -fx-text-fill: #a78bfa; -fx-font-weight: bold; -fx-padding: 15 25; -fx-cursor: hand;"));
+
+        options.getChildren().addAll(staminaBtn, moraleBtn);
+
+        Button cancelBtn = new Button("ABORT MISSION");
+        cancelBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #475569; -fx-font-size: 10px; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> dialogStage.close());
+
+        pane.getChildren().addAll(title, sub, options, cancelBtn);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(pane);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
+
+        return selectedFocusResult;
     }
 
     private Match getNextMatch(League league) {

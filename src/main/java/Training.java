@@ -25,6 +25,11 @@ public class Training implements java.io.Serializable {
                 for (int i = 0; i < improvement; i++) {
                     player.train();
                 }
+                if ("Stamina".equalsIgnoreCase(trainingType)) {
+                    player.recoverStamina();
+                } else if ("Morale".equalsIgnoreCase(trainingType)) {
+                    player.increaseMorale(20);
+                }
             }
         }
     }
