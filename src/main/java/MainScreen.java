@@ -75,7 +75,8 @@ public class MainScreen {
                 fmNavBtn("📅", "Schedule",      "fixtures"),
                 fmNavBtn("🎯", "Tactics",       "dashboard"),
                 fmNavBtn("🏃", "Training",      "train"),
-                fmNavBtn("▶",  "Play Match",    "play")
+                fmNavBtn("▶",  "Play Match",    "play"),
+                fmNavBtn("⚙",  "Settings",      "settings")
         );
 
         Button saveBtn = fmNavBtn("💾", "Save Game", "save");
@@ -141,6 +142,7 @@ public class MainScreen {
             case "fixtures"  -> contentArea.getChildren().add(buildFixtures());
             case "train"     -> doTrain();
             case "play"      -> doPlay();
+            case "settings"  -> contentArea.getChildren().add(buildSettings());
             case "save"      -> {
                 gm.saveGame("savegame.dat");
                 showAlert("💾 Saved", "Game saved successfully.");
@@ -674,6 +676,71 @@ public class MainScreen {
         label.setMaxWidth(width);
         label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (isUser ? "#60a5fa" : "#64748b") + ";");
         return label;
+    }
+    private ScrollPane buildSettings() {
+        VBox pane = new VBox(20);
+        pane.setPadding(new Insets(28));
+        pane.setStyle("-fx-background-color: #080c18;");
+
+        Label title = new Label("Settings");
+        title.getStyleClass().add("page-title");
+
+        VBox card = new VBox(16);
+        card.setPadding(new Insets(24));
+        card.setMaxWidth(600);
+        card.setStyle("-fx-background-color: #111827; -fx-background-radius: 14; -fx-border-color: #1e2d45; -fx-border-radius: 14; -fx-border-width: 1;");
+
+        // GÖRÜNTÜ AYARLARI
+        Label displayLabel = new Label("DISPLAY SETTINGS");
+        displayLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Button fullscreenBtn = new Button("🖥  Toggle Full Screen");
+        fullscreenBtn.setMaxWidth(Double.MAX_VALUE);
+        fullscreenBtn.setStyle("-fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 12 20 12 20; -fx-border-width: 0;");
+        fullscreenBtn.setOnAction(e -> {
+            javafx.stage.Stage stage = (javafx.stage.Stage) root.getScene().getWindow();
+            stage.setFullScreen(!stage.isFullScreen());
+        });
+
+        Region divider = new Region();
+        divider.setMinHeight(1); divider.setMaxHeight(1);
+        divider.setStyle("-fx-background-color: #1e2d45; -fx-margin: 10 0 10 0;");
+
+        Label gameLabel = new Label("GAME SETTINGS");
+        gameLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Button saveGameBtn = new Button("💾  Save Game");
+        saveGameBtn.setMaxWidth(Double.MAX_VALUE);
+        saveGameBtn.setStyle("-fx-background-color: #14532d; -fx-text-fill: #22c55e; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 12 20 12 20; -fx-border-width: 0;");
+        saveGameBtn.setOnAction(e -> {
+            gm.saveGame("savegame.dat");
+            showAlert("💾 Saved", "Game saved successfully.");
+        });
+
+        Button exitBtn = new Button("🚪  Exit to Desktop");
+        exitBtn.setMaxWidth(Double.MAX_VALUE);
+        exitBtn.setStyle("-fx-background-color: #7f1d1d; -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 12 20 12 20; -fx-border-width: 0;");
+        exitBtn.setOnAction(e -> {
+
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Exit Game");
+            alert.setHeaderText("Are you sure you want to exit?");
+            alert.setContentText("Any unsaved progress will be lost.");
+            alert.showAndWait().ifPresent(response -> {
+                if (response == javafx.scene.control.ButtonType.OK) {
+                    javafx.application.Platform.exit();
+                    System.exit(0);
+                }
+            });
+        });
+
+        card.getChildren().addAll(displayLabel, fullscreenBtn, divider, gameLabel, saveGameBtn, exitBtn);
+        pane.getChildren().addAll(title, card);
+
+        ScrollPane sp = new ScrollPane(pane);
+        sp.setFitToWidth(true);
+        sp.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+        return sp;
     }
 
     private ScrollPane buildFixtures() {

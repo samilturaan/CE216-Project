@@ -10,9 +10,18 @@ public class SceneManager {
         stage = s;
         gameManager = new GameManager();
         stage.setTitle("Sports Manager");
+
+        stage.setResizable(true);
+
         stage.setWidth(1100);
         stage.setHeight(750);
-        stage.setResizable(false);
+
+        // F11 tuşuna basınca Full Screen moduna geçme özelliği
+        stage.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
     }
 
     public static GameManager getGameManager() {
@@ -29,44 +38,44 @@ public class SceneManager {
 
     public static void showSplash() {
         SplashScreen splash = new SplashScreen();
-        Scene scene = new Scene(splash.getRoot(), 1100, 750);
+        Scene scene = new Scene(splash.getRoot());
         stage.setScene(scene);
         stage.show();
     }
 
     public static void showSportSelect() {
         SportSelectScreen screen = new SportSelectScreen();
-        Scene scene = new Scene(screen.getRoot(), 1100, 750);
+        Scene scene = new Scene(screen.getRoot());
         stage.setScene(scene);
     }
 
     public static void showTeamSetup() {
         TeamSetupScreen screen = new TeamSetupScreen();
-        Scene scene = new Scene(screen.getRoot(), 1100, 750);
+        Scene scene = new Scene(screen.getRoot());
         stage.setScene(scene);
     }
 
     public static void showMain() {
         MainScreen screen = new MainScreen();
-        Scene scene = new Scene(screen.getRoot(), 1100, 750);
+        Scene scene = new Scene(screen.getRoot());
         stage.setScene(scene);
     }
 
     public static void showMatchResult(Match match) {
         MatchResultScreen screen = new MatchResultScreen(match);
-        Scene scene = new Scene(screen.getRoot(), 1100, 750);
+        Scene scene = new Scene(screen.getRoot());
         stage.setScene(scene);
     }
 
     public static void showLiveMatch(Match match) {
         LiveMatchScreen screen = new LiveMatchScreen(match, gameManager);
-        Scene scene = new Scene(screen.getRoot(), 1280, 820);
+        Scene scene = new Scene(screen.getRoot());
         stage.setScene(scene);
     }
 
     public static void showSeasonEnd() {
         SeasonEndScreen screen = new SeasonEndScreen();
-        Scene scene = new Scene(screen.getRoot(), 1100, 750);
+        Scene scene = new Scene(screen.getRoot());
         stage.setScene(scene);
     }
 }

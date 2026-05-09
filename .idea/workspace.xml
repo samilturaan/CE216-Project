@@ -5,14 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="649a1940-ab71-46be-8b5d-90310e7cbfe0" name="Changes" comment="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu oluşturuldu">
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/lib.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/CE216-Project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CE216-Project.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/LiveMatchScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/LiveMatchScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MainScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MainScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/SceneManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SceneManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,6 +55,7 @@
     &quot;Application.Main.executor&quot;: &quot;Run&quot;,
     &quot;Application.MainApp.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.SportsManagerTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.CE216-Project [org.openjfx:javafx-maven-plugin:0.0.8:run].executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,

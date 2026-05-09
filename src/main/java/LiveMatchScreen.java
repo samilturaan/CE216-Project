@@ -30,6 +30,8 @@ public class LiveMatchScreen {
         root = new StackPane();
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #081120, #111827);");
 
+        root.getStylesheets().add("data:text/css," + Styles.BASE.replace("\n"," "));
+
         possessionLabel = new Label();
         shotsLabel = new Label();
         shotsOnTargetLabel = new Label();
@@ -133,7 +135,8 @@ public class LiveMatchScreen {
         ScrollPane scroll = new ScrollPane(eventList);
         scroll.setFitToWidth(true);
         scroll.getStyleClass().add("scroll-clean");
-        
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: #111827; -fx-border-color: transparent;");
+
         scroll.setPrefHeight(420);
         scroll.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
 
