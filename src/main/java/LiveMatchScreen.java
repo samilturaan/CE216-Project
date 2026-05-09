@@ -132,6 +132,8 @@ public class LiveMatchScreen {
 
         ScrollPane scroll = new ScrollPane(eventList);
         scroll.setFitToWidth(true);
+        scroll.getStyleClass().add("scroll-clean");
+        
         scroll.setPrefHeight(420);
         scroll.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
 
@@ -272,7 +274,7 @@ public class LiveMatchScreen {
     }
 
     private String getEventColor(String event) {
-        if (event.contains("GOAL") || event.contains("wins the set")) return "#22c55e";
+        if (event.contains("GOAL") || event.contains("wins the set")) return "#ffffff";
         if (event.contains("Injury")) return "#ef4444";
         if (event.contains("Full time")) return "#60a5fa";
         return "#cbd5e1";

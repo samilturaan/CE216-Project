@@ -5,17 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="649a1940-ab71-46be-8b5d-90310e7cbfe0" name="Changes" comment="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu oluşturuldu">
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/lib.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/CE216-Project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CE216-Project.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/GameManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GameManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ISport.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ISport.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/League.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/League.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MainScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MainScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Match.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Match.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Person.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Person.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/SceneManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SceneManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/SplashScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SplashScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Team.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Team.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Training.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Training.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/LiveMatchScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/LiveMatchScreen.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,12 +57,15 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MainApp.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.SportsManagerTest.executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
@@ -76,20 +76,48 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="JUnit.SportsManagerTest">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="CE216-Project" />
+      <option name="VM_PARAMETERS" value="--module-path &quot;C:\Users\TURAN\Downloads\openjfx-21.0.11_windows-x64_bin-sdk\javafx-sdk-21.0.11\lib&quot; --add-modules javafx.controls,javafx.fxml" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="MainApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="MainApp" />
+      <module name="CE216-Project" />
+      <option name="VM_PARAMETERS" value="--module-path &quot;C:\Users\TURAN\Downloads\openjfx-21.0.11_windows-x64_bin-sdk\javafx-sdk-21.0.11\lib&quot; --add-modules javafx.controls,javafx.fxml" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SportsManagerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="CE216-Project" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="SportsManagerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.MainApp" />
+      <item itemvalue="Application.Main" />
+      <item itemvalue="JUnit.SportsManagerTest" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.SportsManagerTest" />
+        <item itemvalue="Application.MainApp" />
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>

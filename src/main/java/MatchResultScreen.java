@@ -147,7 +147,7 @@ public class MatchResultScreen {
 
     private String getEventColor(String event) {
         if (event.contains("GOAL") || event.contains("wins the set")) {
-            return "#22c55e";
+            return "#ffffff";
         }
         if (event.contains("Injury")) {
             return "#ef4444";
@@ -155,7 +155,7 @@ public class MatchResultScreen {
         if (event.contains("Full time")) {
             return "#60a5fa";
         }
-        return "#94a3b8";
+        return "#cbd5e1";
     }
 
     private VBox buildOtherResultsBox(GameManager gm, Match userMatch) {
