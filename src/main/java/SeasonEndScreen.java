@@ -68,14 +68,15 @@ public class SeasonEndScreen {
         stTitle.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
         standingsCard.getChildren().add(stTitle);
 
-        String[] medals = {"🥇","🥈","🥉","4th"};
+        String[] medals = {"🥇","🥈","🥉"};
         for (int i = 0; i < standings.size(); i++) {
             Team t = standings.get(i);
             boolean isUser = t.getName().equals(userTeam.getName());
             HBox row = new HBox(12);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(8,0,8,0));
-            Label medal = new Label(i < 3 ? medals[i] : medals[3]);
+
+            Label medal = new Label(i < 3 ? medals[i] : getOrdinal(i + 1));
             medal.setMinWidth(36);
             Label nameL = new Label((isUser ? "★  " : "") + t.getName());
             nameL.setStyle("-fx-font-size: 14px; -fx-text-fill: " + (isUser ? "#60a5fa" : "#94a3b8") + "; -fx-font-weight: " + (isUser ? "bold" : "normal") + ";");

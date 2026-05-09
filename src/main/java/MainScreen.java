@@ -645,7 +645,7 @@ public class MainScreen {
         addCol(hdr, "PTS", 70, "#334155");
         table.getChildren().add(hdr);
 
-        String[] medals = {"🥇", "🥈", "🥉", "4"};
+        String[] medals = {"🥇", "🥈", "🥉"};
         for (int i = 0; i < standings.size(); i++) {
             Team t = standings.get(i);
             boolean isUser = t.getName().equals(userTeam.getName());
@@ -655,7 +655,7 @@ public class MainScreen {
                     ? "-fx-background-color: #0f1e35; -fx-background-radius: 10; -fx-border-color: #3b82f6; -fx-border-radius: 10; -fx-border-width: 1;"
                     : (i % 2 == 0 ? "-fx-background-color: #111827;" : "-fx-background-color: #0e1520;") + " -fx-background-radius: 10;");
 
-            Label medal = new Label(i < 3 ? medals[i] : medals[3]);
+            Label medal = new Label(i < 3 ? medals[i] : (i + 1) + ".");
             medal.setMinWidth(40);
 
             Label nameL = new Label((isUser ? "★  " : "    ") + t.getName());
