@@ -4,6 +4,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import java.util.List;
 
 public class MainScreen {
@@ -12,6 +14,7 @@ public class MainScreen {
     private VBox contentArea;
     private String activeTab = "dashboard";
     private String selectedFocusResult = null;
+    private Player selectedLineupPlayer = null;
 
     public MainScreen() {
         gm = SceneManager.getGameManager();
@@ -187,9 +190,11 @@ public class MainScreen {
         HBox insightRow = new HBox(16);
         VBox formBox = buildFormGraphCard(userTeam);
         VBox topScorerBox = buildTopScorerCard(userTeam);
+        VBox newsBox = buildNewsCenter();
         HBox.setHgrow(formBox, Priority.ALWAYS);
         HBox.setHgrow(topScorerBox, Priority.ALWAYS);
-        insightRow.getChildren().addAll(formBox, topScorerBox);
+        HBox.setHgrow(newsBox, Priority.ALWAYS);
+        insightRow.getChildren().addAll(formBox, topScorerBox, newsBox);
 
         VBox recentBox = buildRecentResults();
 
@@ -473,7 +478,17 @@ public class MainScreen {
             coachCard.getChildren().add(row);
         }
 
-        Label playersTitle = new Label("PLAYER CARDS");
+        Label lineupTitle = new Label("TACTICAL PITCH");
+        lineupTitle.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        HBox lineupSection = new HBox(18);
+        lineupSection.setAlignment(Pos.TOP_CENTER);
+        VBox pitchView = buildPitchView(userTeam);
+        VBox substitutesPanel = buildSubstitutesPanel(userTeam);
+        HBox.setHgrow(pitchView, Priority.ALWAYS);
+        lineupSection.getChildren().addAll(pitchView, substitutesPanel);
+
+        Label playersTitle = new Label("FULL SQUAD CARDS");
         playersTitle.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
 
         FlowPane playerCards = new FlowPane();
@@ -485,7 +500,7 @@ public class MainScreen {
             playerCards.getChildren().add(buildPlayerCard(p));
         }
 
-        pane.getChildren().addAll(title, coachCard, playersTitle, playerCards);
+        pane.getChildren().addAll(title, coachCard, lineupTitle, lineupSection, playersTitle, playerCards);
         ScrollPane sp = new ScrollPane(pane);
         sp.setFitToWidth(true);
         sp.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
@@ -804,29 +819,92 @@ public class MainScreen {
             showTab("standings");
             return;
         }
+
         String type = showTechChoiceDialog();
 
         if (type == null) {
             showTab("dashboard");
             return;
         }
-        boolean trained = gm.trainUserTeam(type);
-        activeTab = "dashboard";
 
-        if (trained) {
-            String alertColor = type.equals("Stamina") ? "#22c55e" : "#a78bfa";
+        showTrainingSequence(type);
+    }
 
-            showTechAlert("⚡", "SQUAD OPTIMIZED",
-                    type.toUpperCase() + " focus sequence complete. Weekly limit: " +
-                            gm.getTrainingsThisWeek() + "/" + gm.getMaxTrainingsPerWeek(),
-                    alertColor);
-        } else {
-
-            showTechAlert("⚠", "CAPACITY REACHED",
-                    "Maximum weekly sessions reached. Players require recovery.",
-                    "#f59e0b");
+    private void showTrainingSequence(String type) {
+        javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+        dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+        if (root.getScene() != null && root.getScene().getWindow() != null) {
+            dialogStage.initOwner(root.getScene().getWindow());
         }
-        showTab("dashboard");
+        dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+
+        String color = type.equals("Stamina") ? "#22c55e" : "#a78bfa";
+        String icon = type.equals("Stamina") ? "🏃" : "🧠";
+        String focusText = type.equals("Stamina") ? "PHYSICAL CONDITIONING" : "MENTAL PREPARATION";
+        String processText = type.equals("Stamina") ? "Improving stamina, recovery and match sharpness..." : "Improving morale, focus and squad confidence...";
+
+        VBox pane = new VBox(16);
+        pane.setAlignment(Pos.CENTER);
+        pane.setPadding(new Insets(34, 58, 34, 58));
+        pane.setMinWidth(430);
+        pane.setStyle("-fx-background-color: linear-gradient(to bottom right, #0d1222, #080c18);" +
+                "-fx-border-color: " + color + ";" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 16;" +
+                "-fx-background-radius: 16;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 28, 0, 0, 10);");
+
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 44px;");
+
+        Label titleLbl = new Label("TRAINING SESSION");
+        titleLbl.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff; -fx-letter-spacing: 2px;");
+
+        Label focusLbl = new Label(focusText);
+        focusLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+
+        Label processLbl = new Label(processText);
+        processLbl.setWrapText(true);
+        processLbl.setAlignment(Pos.CENTER);
+        processLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
+
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setPrefWidth(320);
+        progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        progressBar.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: #111827;");
+
+        Label limitLbl = new Label("Session " + (gm.getTrainingsThisWeek() + 1) + " / " + gm.getMaxTrainingsPerWeek());
+        limitLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #475569;");
+
+        pane.getChildren().addAll(iconLbl, titleLbl, focusLbl, processLbl, progressBar, limitLbl);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(pane);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialogStage.setScene(scene);
+        dialogStage.show();
+
+        PauseTransition delay = new PauseTransition(Duration.seconds(2));
+        delay.setOnFinished(event -> {
+            boolean trained = gm.trainUserTeam(type);
+            dialogStage.close();
+            activeTab = "dashboard";
+
+            javafx.application.Platform.runLater(() -> {
+                if (trained) {
+                    showTechAlert("⚡", "SQUAD OPTIMIZED",
+                            type.toUpperCase() + " focus sequence complete. Weekly limit: " +
+                                    gm.getTrainingsThisWeek() + "/" + gm.getMaxTrainingsPerWeek(),
+                            color);
+                } else {
+                    showTechAlert("⚠", "CAPACITY REACHED",
+                            "Maximum weekly sessions reached. Players require recovery.",
+                            "#f59e0b");
+                }
+
+                showTab("dashboard");
+            });
+        });
+        delay.play();
     }
 
     private void doPlay() {
@@ -883,7 +961,7 @@ public class MainScreen {
 
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
         dialogStage.setScene(scene);
-        dialogStage.showAndWait();
+        dialogStage.show();
     }
     private String showTechChoiceDialog() {
         selectedFocusResult = null; // Reset
@@ -967,6 +1045,404 @@ public class MainScreen {
             if (standings.get(i).getName().equals(userTeam.getName())) return (i+1) + "/" + standings.size();
         }
         return "-";
+    }
+
+    private VBox buildNewsCenter() {
+        VBox card = new VBox(12);
+        card.setPadding(new Insets(20));
+        card.setMinWidth(300);
+        card.setStyle("-fx-background-color: #111827; -fx-background-radius: 14; -fx-border-color: #1e2d45; -fx-border-radius: 14; -fx-border-width: 1;");
+
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Label title = new Label("NEWS CENTER");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label liveBadge = new Label("LIVE");
+        liveBadge.setStyle("-fx-background-color: #10251a; -fx-text-fill: #22c55e; -fx-font-size: 9px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 3 8 3 8;");
+
+        header.getChildren().addAll(title, spacer, liveBadge);
+
+        VBox newsList = new VBox(8);
+        List<String> newsItems = gm.getNewsItems();
+
+        if (newsItems == null || newsItems.isEmpty()) {
+            Label empty = new Label("No news yet. Play matches or train your squad to generate club updates.");
+            empty.setWrapText(true);
+            empty.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+            newsList.getChildren().add(empty);
+        } else {
+            int count = 0;
+            for (String news : newsItems) {
+                if (count >= 4) {
+                    break;
+                }
+                newsList.getChildren().add(buildNewsItem(news));
+                count++;
+            }
+        }
+
+        card.getChildren().addAll(header, newsList);
+        return card;
+    }
+
+    private HBox buildNewsItem(String news) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.TOP_LEFT);
+        row.setPadding(new Insets(10, 12, 10, 12));
+        row.setStyle("-fx-background-color: #0d1222; -fx-background-radius: 10; -fx-border-color: #1e2d45; -fx-border-radius: 10; -fx-border-width: 1;");
+
+        Label icon = new Label(getNewsIcon(news));
+        icon.setStyle("-fx-font-size: 16px;");
+
+        Label text = new Label(news);
+        text.setWrapText(true);
+        text.setMaxWidth(250);
+        text.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
+
+        row.getChildren().addAll(icon, text);
+        return row;
+    }
+
+    private String getNewsIcon(String news) {
+        String lower = news.toLowerCase();
+        if (lower.contains("training")) {
+            return "🏃";
+        }
+        if (lower.contains("injury") || lower.contains("out for")) {
+            return "🚑";
+        }
+        if (lower.contains("defeated")) {
+            return "⚡";
+        }
+        if (lower.contains("ranked")) {
+            return "📈";
+        }
+        if (lower.contains("season started")) {
+            return "📰";
+        }
+        return "•";
+    }
+
+    private VBox buildPitchView(Team team) {
+        if (isVolleyballTeam(team)) {
+            return buildVolleyballCourtView(team);
+        }
+
+        VBox wrapper = new VBox(12);
+        wrapper.setPadding(new Insets(18));
+        wrapper.setStyle("-fx-background-color: #111827; -fx-background-radius: 16; -fx-border-color: #1e2d45; -fx-border-radius: 16; -fx-border-width: 1;");
+
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+        Label title = new Label("STARTING LINEUP");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label hint = new Label(selectedLineupPlayer == null ? "Select a player to substitute" : "Selected: " + selectedLineupPlayer.getName());
+        hint.setStyle("-fx-font-size: 11px; -fx-text-fill: " + (selectedLineupPlayer == null ? "#475569" : "#60a5fa") + ";");
+        header.getChildren().addAll(title, spacer, hint);
+
+        StackPane pitch = new StackPane();
+        pitch.setMinHeight(520);
+        pitch.setMaxWidth(Double.MAX_VALUE);
+        pitch.setStyle("-fx-background-color: linear-gradient(to bottom, #0f5132, #14532d); -fx-background-radius: 20; -fx-border-color: #22c55e66; -fx-border-radius: 20; -fx-border-width: 1.5;");
+
+        StackPane fieldLines = new StackPane();
+        fieldLines.setMouseTransparent(true);
+        fieldLines.setMinHeight(520);
+        fieldLines.setMaxWidth(Double.MAX_VALUE);
+
+        Rectangle centerLine = new Rectangle(2, 2);
+        centerLine.widthProperty().bind(pitch.widthProperty().subtract(48));
+        centerLine.setFill(Color.web("#ffffff55"));
+
+        Circle centerCircle = new Circle(58);
+        centerCircle.setFill(Color.TRANSPARENT);
+        centerCircle.setStroke(Color.web("#ffffff55"));
+        centerCircle.setStrokeWidth(2);
+
+        Rectangle penaltyBox = new Rectangle(310, 95);
+        penaltyBox.setFill(Color.TRANSPARENT);
+        penaltyBox.setStroke(Color.web("#ffffff44"));
+        penaltyBox.setStrokeWidth(2);
+        penaltyBox.setArcWidth(8);
+        penaltyBox.setArcHeight(8);
+
+        Rectangle goalBox = new Rectangle(160, 36);
+        goalBox.setFill(Color.TRANSPARENT);
+        goalBox.setStroke(Color.web("#ffffff44"));
+        goalBox.setStrokeWidth(2);
+        goalBox.setArcWidth(6);
+        goalBox.setArcHeight(6);
+
+        fieldLines.getChildren().addAll(centerCircle, centerLine, penaltyBox, goalBox);
+        StackPane.setAlignment(centerCircle, Pos.CENTER);
+        StackPane.setAlignment(centerLine, Pos.CENTER);
+        StackPane.setAlignment(penaltyBox, Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(goalBox, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(penaltyBox, new Insets(0, 0, 44, 0));
+        StackPane.setMargin(goalBox, new Insets(0, 0, 18, 0));
+
+        GridPane positions = new GridPane();
+        positions.setPadding(new Insets(34, 34, 30, 34));
+        positions.setVgap(18);
+        positions.setHgap(18);
+        positions.setAlignment(Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(positions, Pos.BOTTOM_CENTER);
+
+        List<Player> lineup = team.getStartingLineup();
+        if (lineup.isEmpty()) {
+            team.generateDefaultLineup();
+            lineup = team.getStartingLineup();
+        }
+
+        for (int i = 0; i < lineup.size(); i++) {
+            Player player = lineup.get(i);
+            StackPane playerNode = buildPitchPlayerNode(player);
+            int[] pos = getPitchPosition(i, lineup.size());
+            positions.add(playerNode, pos[0], pos[1]);
+        }
+
+        pitch.getChildren().addAll(fieldLines, positions);
+        wrapper.getChildren().addAll(header, pitch);
+        return wrapper;
+    }    private VBox buildVolleyballCourtView(Team team) {
+        VBox wrapper = new VBox(12);
+        wrapper.setPadding(new Insets(18));
+        wrapper.setStyle("-fx-background-color: #111827; -fx-background-radius: 16; -fx-border-color: #1e2d45; -fx-border-radius: 16; -fx-border-width: 1;");
+
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Label title = new Label("STARTING SIX");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label hint = new Label(selectedLineupPlayer == null ? "Select a player to substitute" : "Selected: " + selectedLineupPlayer.getName());
+        hint.setStyle("-fx-font-size: 11px; -fx-text-fill: " + (selectedLineupPlayer == null ? "#475569" : "#60a5fa") + ";");
+
+        header.getChildren().addAll(title, spacer, hint);
+
+        StackPane court = new StackPane();
+        court.setMinHeight(460);
+        court.setMaxWidth(Double.MAX_VALUE);
+        court.setStyle("-fx-background-color: linear-gradient(to bottom, #92400e, #b45309); -fx-background-radius: 20; -fx-border-color: #f59e0b88; -fx-border-radius: 20; -fx-border-width: 1.5;");
+
+        StackPane courtLines = new StackPane();
+        courtLines.setMouseTransparent(true);
+        courtLines.setMinHeight(460);
+        courtLines.setMaxWidth(Double.MAX_VALUE);
+
+        Rectangle netLine = new Rectangle(2, 3);
+        netLine.widthProperty().bind(court.widthProperty().subtract(48));
+        netLine.setFill(Color.web("#f8fafcaa"));
+
+        Rectangle attackLineTop = new Rectangle(2, 2);
+        attackLineTop.widthProperty().bind(court.widthProperty().subtract(70));
+        attackLineTop.setFill(Color.web("#f8fafc66"));
+
+        Rectangle attackLineBottom = new Rectangle(2, 2);
+        attackLineBottom.widthProperty().bind(court.widthProperty().subtract(70));
+        attackLineBottom.setFill(Color.web("#f8fafc66"));
+
+        courtLines.getChildren().addAll(netLine, attackLineTop, attackLineBottom);
+        StackPane.setAlignment(netLine, Pos.CENTER);
+        StackPane.setAlignment(attackLineTop, Pos.TOP_CENTER);
+        StackPane.setAlignment(attackLineBottom, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(attackLineTop, new Insets(116, 0, 0, 0));
+        StackPane.setMargin(attackLineBottom, new Insets(0, 0, 116, 0));
+
+        GridPane positions = new GridPane();
+        positions.setPadding(new Insets(54, 60, 54, 60));
+        positions.setVgap(88);
+        positions.setHgap(48);
+        positions.setAlignment(Pos.CENTER);
+        StackPane.setAlignment(positions, Pos.CENTER);
+
+        List<Player> lineup = team.getStartingLineup();
+        if (lineup.isEmpty() || lineup.size() > 6) {
+            team.generateDefaultLineup();
+            lineup = team.getStartingLineup();
+        }
+
+        for (int i = 0; i < lineup.size(); i++) {
+            Player player = lineup.get(i);
+            StackPane playerNode = buildPitchPlayerNode(player);
+            int[] pos = getVolleyballCourtPosition(i);
+            positions.add(playerNode, pos[0], pos[1]);
+        }
+
+        court.getChildren().addAll(courtLines, positions);
+        wrapper.getChildren().addAll(header, court);
+        return wrapper;
+    }
+
+    private VBox buildSubstitutesPanel(Team team) {
+        VBox panel = new VBox(10);
+        panel.setPadding(new Insets(18));
+        panel.setMinWidth(300);
+        panel.setMaxWidth(340);
+        panel.setStyle("-fx-background-color: #111827; -fx-background-radius: 16; -fx-border-color: #1e2d45; -fx-border-radius: 16; -fx-border-width: 1;");
+
+        Label title = new Label("SUBSTITUTES");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+
+        VBox list = new VBox(8);
+        for (Player sub : team.getSubstitutes()) {
+            list.getChildren().add(buildSubstituteRow(team, sub));
+        }
+
+        if (team.getSubstitutes().isEmpty()) {
+            Label empty = new Label("No substitutes available.");
+            empty.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+            list.getChildren().add(empty);
+        }
+
+        panel.getChildren().addAll(title, list);
+        return panel;
+    }
+
+    private StackPane buildPitchPlayerNode(Player player) {
+        StackPane node = new StackPane();
+        node.setPrefSize(116, 56);
+        boolean selected = selectedLineupPlayer == player;
+        String borderColor = selected ? "#60a5fa" : player.isInjured() ? "#7f1d1d" : "#22c55e88";
+        String background = selected ? "#0f1e35" : player.isInjured() ? "#2a1014" : "#0d1222dd";
+        node.setStyle("-fx-background-color: " + background + "; -fx-background-radius: 14; -fx-border-color: " + borderColor + "; -fx-border-radius: 14; -fx-border-width: " + (selected ? "2" : "1") + "; -fx-cursor: hand;");
+
+        VBox content = new VBox(2);
+        content.setAlignment(Pos.CENTER);
+        Label name = new Label(shortName(player.getName()));
+        name.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label meta = new Label(shortPosition(player.getPosition()) + " • " + player.getStamina() + "%");
+        meta.setStyle("-fx-font-size: 10px; -fx-text-fill: " + getStaminaColor(player.getStamina()) + ";");
+        content.getChildren().addAll(name, meta);
+        node.getChildren().add(content);
+
+        node.setOnMouseClicked(e -> {
+            selectedLineupPlayer = player;
+            showTab("squad");
+        });
+
+        return node;
+    }
+
+    private HBox buildSubstituteRow(Team team, Player player) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(10, 12, 10, 12));
+        boolean canUse = selectedLineupPlayer != null && !player.isInjured();
+        row.setStyle(canUse
+                ? "-fx-background-color: #0f1e35; -fx-background-radius: 10; -fx-border-color: #3b82f6; -fx-border-radius: 10; -fx-border-width: 1; -fx-cursor: hand;"
+                : "-fx-background-color: #0d1222; -fx-background-radius: 10; -fx-border-color: #1e2d45; -fx-border-radius: 10; -fx-border-width: 1;");
+
+        Label icon = new Label(player.isInjured() ? "🚑" : "🔁");
+        icon.setStyle("-fx-font-size: 16px;");
+
+        VBox text = new VBox(2);
+        Label name = new Label(player.getName());
+        name.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
+        Label meta = new Label(shortPosition(player.getPosition()) + " • OVR " + player.getSkillLevel() + " • STM " + player.getStamina() + "%");
+        meta.setStyle("-fx-font-size: 10px; -fx-text-fill: #64748b;");
+        text.getChildren().addAll(name, meta);
+
+        row.getChildren().addAll(icon, text);
+
+        row.setOnMouseClicked(e -> {
+            if (selectedLineupPlayer == null) {
+                showTechAlert("ℹ", "SELECT STARTER", "First select a starting lineup player on the pitch.", "#3b82f6");
+                return;
+            }
+
+            boolean changed = team.substitutePlayer(selectedLineupPlayer, player);
+            if (changed) {
+                showTechAlert("🔁", "SUBSTITUTION COMPLETE", selectedLineupPlayer.getName() + " was replaced by " + player.getName() + ".", "#22c55e");
+                selectedLineupPlayer = null;
+                showTab("squad");
+            } else {
+                showTechAlert("⚠", "SUBSTITUTION FAILED", "This substitution cannot be completed.", "#f59e0b");
+            }
+        });
+
+        return row;
+    }
+    private boolean isVolleyballTeam(Team team) {
+        for (Player player : team.getPlayers()) {
+            String position = player.getPosition();
+            if ("Setter".equals(position)
+                    || "Outside Hitter".equals(position)
+                    || "Middle Blocker".equals(position)
+                    || "Opposite Hitter".equals(position)
+                    || "Libero".equals(position)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int[] getVolleyballCourtPosition(int index) {
+        int[][] positions = {
+                {1, 1},
+                {0, 1},
+                {2, 1},
+                {0, 0},
+                {1, 0},
+                {2, 0}
+        };
+        return positions[Math.min(index, positions.length - 1)];
+    }
+    private int[] getPitchPosition(int index, int lineupSize) {
+        int[][] footballPositions = {
+                {2, 5},
+                {0, 4}, {1, 4}, {3, 4}, {4, 4},
+                {1, 3}, {2, 3}, {3, 3},
+                {1, 2}, {2, 2}, {3, 2}
+        };
+
+        int[][] compactPositions = {
+                {2, 5},
+                {1, 4}, {3, 4},
+                {0, 3}, {2, 3}, {4, 3},
+                {2, 2}
+        };
+
+        if (lineupSize <= 7) {
+            return compactPositions[Math.min(index, compactPositions.length - 1)];
+        }
+        return footballPositions[Math.min(index, footballPositions.length - 1)];
+    }
+
+    private String shortName(String name) {
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length >= 2) {
+            return parts[0].substring(0, 1) + ". " + parts[1];
+        }
+        return name;
+    }
+
+    private String shortPosition(String position) {
+        if (position == null) {
+            return "POS";
+        }
+        return switch (position) {
+            case "Goalkeeper" -> "GK";
+            case "Defender" -> "DEF";
+            case "Midfielder" -> "MID";
+            case "Forward" -> "FWD";
+            case "Setter" -> "SET";
+            case "Outside Hitter" -> "OH";
+            case "Middle Blocker" -> "MB";
+            case "Opposite Hitter" -> "OPP";
+            case "Libero" -> "LIB";
+            default -> position;
+        };
     }
 
     public BorderPane getRoot() { return root; }

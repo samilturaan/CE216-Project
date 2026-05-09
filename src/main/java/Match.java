@@ -16,6 +16,8 @@ public class Match implements java.io.Serializable{
     private List<String> matchEvents;
     private List<String> lastPeriodEvents;
     private List<String> setScores;
+    private List<LivePeriodEvent> pendingLiveEvents;
+    private String pendingSetScore;
 
     private int homeShots;
     private int awayShots;
@@ -25,6 +27,20 @@ public class Match implements java.io.Serializable{
     private int awayPossession;
     private int homeFouls;
     private int awayFouls;
+
+    private static class LivePeriodEvent implements java.io.Serializable {
+        private String text;
+        private int homeScoreDelta;
+        private int awayScoreDelta;
+        private Player scorer;
+
+        private LivePeriodEvent(String text, int homeScoreDelta, int awayScoreDelta, Player scorer) {
+            this.text = text;
+            this.homeScoreDelta = homeScoreDelta;
+            this.awayScoreDelta = awayScoreDelta;
+            this.scorer = scorer;
+        }
+    }
 
     public Match(Team homeTeam, Team awayTeam, ISport sport) {
         this.homeTeam = homeTeam;
@@ -37,6 +53,8 @@ public class Match implements java.io.Serializable{
         this.matchEvents = new ArrayList<>();
         this.lastPeriodEvents = new ArrayList<>();
         this.setScores = new ArrayList<>();
+        this.pendingLiveEvents = new ArrayList<>();
+        this.pendingSetScore = null;
         this.homeShots = 0;
         this.awayShots = 0;
         this.homeShotsOnTarget = 0;
@@ -50,9 +68,23 @@ public class Match implements java.io.Serializable{
     public void playNextPeriod() {
         if (played) return;
 
+        prepareNextPeriodForLive();
+        while (hasPendingLiveEvents()) {
+            revealNextLiveEvent();
+        }
+    }
+
+    public void prepareNextPeriodForLive() {
+        if (played || hasPendingLiveEvents()) {
+            return;
+        }
+
         Random random = new Random();
         int playedPeriod = currentPeriod;
         lastPeriodEvents.clear();
+        pendingLiveEvents.clear();
+        pendingSetScore = null;
+        ensureLineupsReady();
 
         int hAttackBonus = getTacticBonus(homeTeam.getTactic(), true);
         int aAttackBonus = getTacticBonus(awayTeam.getTactic(), true);
@@ -66,51 +98,136 @@ public class Match implements java.io.Serializable{
         updateMatchStats(hStrength, aStrength, random);
 
         if (sport.getSportName().equals("Volleyball")) {
-            if (hStrength == aStrength) {
-                if (random.nextBoolean()) hStrength++; else aStrength++;
-            }
-
-            // 25 veya 5. set ise 15
-            int targetScore = (playedPeriod == 5) ? 15 : 25;
-            int hSetPoints = 0, aSetPoints = 0;
-
-            // %20 İhtimalle set uzar (Deuce: 24-24 olur)
-            boolean isDeuce = random.nextInt(5) == 0;
-            int winnerPts = targetScore;
-            int loserPts = targetScore - 2 - random.nextInt(6);
-
-            if (isDeuce) {
-                winnerPts = targetScore + 1 + random.nextInt(4);
-                loserPts = winnerPts - 2;
-            }
-
-            if (hStrength > aStrength) {
-                homeScore++;
-                hSetPoints = winnerPts;
-                aSetPoints = loserPts;
-                addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + homeTeam.getName() + " wins the set (" + hSetPoints + " - " + aSetPoints + ").");
-            } else {
-                awayScore++;
-                aSetPoints = winnerPts;
-                hSetPoints = loserPts;
-                addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + awayTeam.getName() + " wins the set (" + hSetPoints + " - " + aSetPoints + ").");
-            }
-
-            setScores.add(hSetPoints + " - " + aSetPoints);
+            prepareVolleyballSetEvents(playedPeriod, hStrength, aStrength, random);
         } else {
-            homeScore += hStrength;
-            awayScore += aStrength;
-            addScoreEvents(homeTeam, hStrength, playedPeriod, random);
-            addScoreEvents(awayTeam, aStrength, playedPeriod, random);
+            prepareFootballPeriodEvents(playedPeriod, hStrength, aStrength, random);
+        }
+    }
 
-            if (hStrength == 0 && aStrength == 0) {
-                addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": Tight defensive period, no goals scored.");
+    private void prepareFootballPeriodEvents(int playedPeriod, int hStrength, int aStrength, Random random) {
+        addPreparedGoalEvents(homeTeam, hStrength, playedPeriod, random, true);
+        addPreparedGoalEvents(awayTeam, aStrength, playedPeriod, random, false);
+
+        if (hStrength == 0 && aStrength == 0) {
+            pendingLiveEvents.add(new LivePeriodEvent(sport.getPeriodName() + " " + playedPeriod + ": Tight defensive period, no goals scored.", 0, 0, null));
+        }
+    }
+
+    private void prepareVolleyballSetEvents(int playedPeriod, int hStrength, int aStrength, Random random) {
+        if (hStrength == aStrength) {
+            if (random.nextBoolean()) hStrength++; else aStrength++;
+        }
+
+        int targetScore = (playedPeriod == 5) ? 15 : 25;
+        int hSetPoints;
+        int aSetPoints;
+
+        boolean isDeuce = random.nextInt(5) == 0;
+        int winnerPts = targetScore;
+        int loserPts = targetScore - 2 - random.nextInt(6);
+
+        if (isDeuce) {
+            winnerPts = targetScore + 1 + random.nextInt(4);
+            loserPts = winnerPts - 2;
+        }
+
+        boolean homeWinsSet = hStrength > aStrength;
+        Team winningTeam = homeWinsSet ? homeTeam : awayTeam;
+        Team losingTeam = homeWinsSet ? awayTeam : homeTeam;
+
+        if (homeWinsSet) {
+            hSetPoints = winnerPts;
+            aSetPoints = loserPts;
+        } else {
+            aSetPoints = winnerPts;
+            hSetPoints = loserPts;
+        }
+
+        pendingSetScore = hSetPoints + " - " + aSetPoints;
+
+        addPreparedVolleyballRallyEvent(playedPeriod, winningTeam, random, "Service ace", 0, 0);
+        addPreparedVolleyballRallyEvent(playedPeriod, losingTeam, random, "Strong reception keeps the rally alive", 0, 0);
+        addPreparedVolleyballRallyEvent(playedPeriod, winningTeam, random, "Power spike finds the floor", 0, 0);
+
+        if (isDeuce) {
+            addPreparedVolleyballRallyEvent(playedPeriod, losingTeam, random, "Clutch block forces deuce", 0, 0);
+            addPreparedVolleyballRallyEvent(playedPeriod, winningTeam, random, "Set point converted after a long rally", homeWinsSet ? 1 : 0, homeWinsSet ? 0 : 1);
+        } else {
+            addPreparedVolleyballRallyEvent(playedPeriod, winningTeam, random, "Monster block shifts the momentum", 0, 0);
+            addPreparedVolleyballRallyEvent(playedPeriod, winningTeam, random, "Set point converted", homeWinsSet ? 1 : 0, homeWinsSet ? 0 : 1);
+        }
+
+        String setSummary = sport.getPeriodName() + " " + playedPeriod + ": " + winningTeam.getName() +
+                " wins the set (" + hSetPoints + " - " + aSetPoints + ").";
+        pendingLiveEvents.add(new LivePeriodEvent(setSummary, 0, 0, null));
+    }
+
+    private void addPreparedVolleyballRallyEvent(int period, Team team, Random random, String action, int homeDelta, int awayDelta) {
+        Player player = pickRandomAvailablePlayer(team, random);
+        String event;
+
+        if (player != null) {
+            event = sport.getPeriodName() + " " + period + ": " + action + " - " + team.getName() + " | " + player.getName();
+        } else {
+            event = sport.getPeriodName() + " " + period + ": " + action + " - " + team.getName();
+        }
+
+        pendingLiveEvents.add(new LivePeriodEvent(event, homeDelta, awayDelta, null));
+    }
+
+    private void addPreparedGoalEvents(Team scoringTeam, int scoreCount, int period, Random random, boolean homeScored) {
+        for (int i = 0; i < scoreCount; i++) {
+            Player scorer = pickRandomAvailablePlayer(scoringTeam, random);
+            String event;
+            if (scorer != null) {
+                event = sport.getPeriodName() + " " + period + ": GOAL - " + scoringTeam.getName() + " | " + scorer.getName();
+            } else {
+                event = sport.getPeriodName() + " " + period + ": GOAL - " + scoringTeam.getName();
             }
+
+            pendingLiveEvents.add(new LivePeriodEvent(event, homeScored ? 1 : 0, homeScored ? 0 : 1, scorer));
+        }
+    }
+
+    public boolean hasPendingLiveEvents() {
+        return !pendingLiveEvents.isEmpty();
+    }
+
+    public int getPendingLiveEventCount() {
+        return pendingLiveEvents.size();
+    }
+
+    public String revealNextLiveEvent() {
+        if (pendingLiveEvents.isEmpty() || played) {
+            return null;
+        }
+
+        LivePeriodEvent event = pendingLiveEvents.remove(0);
+
+        homeScore += event.homeScoreDelta;
+        awayScore += event.awayScoreDelta;
+
+        if (event.scorer != null && (event.homeScoreDelta > 0 || event.awayScoreDelta > 0)) {
+            event.scorer.scoreGoal();
+        }
+
+        addMatchEvent(event.text);
+
+        if (pendingLiveEvents.isEmpty()) {
+            finishPreparedPeriod();
+        }
+
+        return event.text;
+    }
+
+    private void finishPreparedPeriod() {
+        if (pendingSetScore != null) {
+            setScores.add(pendingSetScore);
+            pendingSetScore = null;
         }
 
         currentPeriod++;
 
-        //Voleybolda 3 sete ulaşılmış mı?
         if (sport.isMatchOver(homeScore, awayScore, currentPeriod)) {
             finalizeMatch();
         }
@@ -159,10 +276,19 @@ public class Match implements java.io.Serializable{
         }
     }
 
+    private void ensureLineupsReady() {
+        if (homeTeam.getStartingLineup().isEmpty()) {
+            homeTeam.generateDefaultLineup();
+        }
+
+        if (awayTeam.getStartingLineup().isEmpty()) {
+            awayTeam.generateDefaultLineup();
+        }
+    }
 
     private void injureRandomPlayer(Team team, Random random) {
-        if (random.nextInt(5) == 0) { // %20 ihtimal
-            java.util.List<Player> available = team.getAvailablePlayers();
+        if (random.nextInt(5) == 0) { // %20 chance
+            List<Player> available = team.getAvailableStartingLineup();
             if (!available.isEmpty()) {
                 Player unlucky = available.get(random.nextInt(available.size()));
                 unlucky.injure(random.nextInt(3) + 1);
@@ -184,7 +310,7 @@ public class Match implements java.io.Serializable{
     }
 
     private Player pickRandomAvailablePlayer(Team team, Random random) {
-        List<Player> availablePlayers = team.getAvailablePlayers();
+        List<Player> availablePlayers = team.getAvailableStartingLineup();
         if (availablePlayers.isEmpty()) {
             return null;
         }
@@ -192,7 +318,7 @@ public class Match implements java.io.Serializable{
     }
 
     private void applyMatchFatigue(Team team) {
-        for (Player player : team.getAvailablePlayers()) {
+        for (Player player : team.getAvailableStartingLineup()) {
             player.playMatch();
         }
     }
@@ -223,7 +349,7 @@ public class Match implements java.io.Serializable{
     private int calculateTeamMomentum(Team team) {
         int totalMorale = 0;
         int totalStamina = 0;
-        List<Player> availablePlayers = team.getAvailablePlayers();
+        List<Player> availablePlayers = team.getAvailableStartingLineup();
 
         if (availablePlayers.isEmpty()) {
             return 0;
@@ -330,5 +456,9 @@ public class Match implements java.io.Serializable{
 
     public List<String> getSetScores() {
         return setScores;
+    }
+
+    public String getPendingSetScore() {
+        return pendingSetScore;
     }
 }

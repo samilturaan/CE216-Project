@@ -12,12 +12,13 @@ Coach.class
 Player.class
 Training.class
 League$1.class
-ISport.class
 Volleyball.class
+ISport.class
 League.class
-GameManager.class
 MatchResultScreen.class
+GameManager.class
 Styles.class
-Football.class
 NameGenerator.class
+Football.class
+Match$LivePeriodEvent.class
 LiveMatchScreen.class

@@ -1,4 +1,6 @@
 import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.ObjectOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,6 +14,7 @@ public class GameManager implements java.io.Serializable{
     private Team userTeam;
     private Training training;
     private NameGenerator nameGenerator;
+    private List<String> newsItems;
     private int trainingsThisWeek;
     private static final int MAX_TRAININGS_PER_WEEK = 5;
 
@@ -21,6 +24,7 @@ public class GameManager implements java.io.Serializable{
         this.userTeam = null;
         this.training = new Training("General Training");
         this.nameGenerator = new NameGenerator();
+        this.newsItems = new ArrayList<>();
         this.trainingsThisWeek = 0;
     }
 
@@ -47,62 +51,83 @@ public class GameManager implements java.io.Serializable{
 
         league = new League(selectedSport);
         trainingsThisWeek = 0;
+        newsItems.clear();
         userTeam = new Team(userTeamName);
 
         generatePlayersForTeam(userTeam);
+        userTeam.generateDefaultLineup();
         userTeam.addCoach(new Coach(nameGenerator.getRandomCoachName(), 45, 5));
         league.addTeam(userTeam);
 
         for (int i = 1; i <= 7; i++) {
             Team cpuTeam = new Team(nameGenerator.getRandomTeamName());
             generatePlayersForTeam(cpuTeam);
+            cpuTeam.generateDefaultLineup();
             cpuTeam.addCoach(new Coach(nameGenerator.getRandomCoachName(), 40 + i, 3 + i));
             league.addTeam(cpuTeam);
         }
 
         league.generateFixtures();
+        addNews("New " + selectedSport.getSportName() + " season started. " + userTeam.getName() + " enters the league with a fresh squad.");
     }
 
     private void generatePlayersForTeam(Team team) {
         Random random = new Random();
-        int playerCount = selectedSport.getPlayersOnField() + selectedSport.getSubstitutesCount();
+        List<String> positions = generatePositionPoolForSelectedSport();
 
-        for (int i = 1; i <= playerCount; i++) {
-            String position = generatePositionForSport(i);
+        for (String position : positions) {
             int skill = random.nextInt(41) + 60;
             Player player = new Player(nameGenerator.getRandomPlayerName(), 18 + random.nextInt(15), position, skill);
             team.addPlayer(player);
         }
     }
 
-    private String generatePositionForSport(int playerNumber) {
+    private List<String> generatePositionPoolForSelectedSport() {
+        List<String> positions = new ArrayList<>();
         String sportName = selectedSport.getSportName();
 
         if (sportName.equalsIgnoreCase("Football")) {
-            if (playerNumber == 1) {
-                return "Goalkeeper";
-            } else if (playerNumber <= 5) {
-                return "Defender";
-            } else if (playerNumber <= 9) {
-                return "Midfielder";
-            } else {
-                return "Forward";
-            }
+            addPositions(positions, "Goalkeeper", 2);
+            addPositions(positions, "Defender", 7);
+            addPositions(positions, "Midfielder", 8);
+            addPositions(positions, "Forward", 5);
+            return positions;
         }
 
         if (sportName.equalsIgnoreCase("Volleyball")) {
-            String[] volleyballPositions = {
-                    "Setter",
-                    "Outside Hitter",
-                    "Middle Blocker",
-                    "Opposite Hitter",
-                    "Libero"
-            };
-            return volleyballPositions[(playerNumber - 1) % volleyballPositions.length];
+            addPositions(positions, "Setter", 2);
+            addPositions(positions, "Outside Hitter", 4);
+            addPositions(positions, "Middle Blocker", 4);
+            addPositions(positions, "Opposite Hitter", 2);
+            addPositions(positions, "Libero", 2);
+            return positions;
         }
 
-        return "Player";
+        int defaultCount = selectedSport.getPlayersOnField() + Math.max(selectedSport.getSubstitutesCount(), selectedSport.getPlayersOnField());
+        for (int i = 0; i < defaultCount; i++) {
+            positions.add("Player");
+        }
+        return positions;
     }
+
+    private void addPositions(List<String> positions, String position, int count) {
+        for (int i = 0; i < count; i++) {
+            positions.add(position);
+        }
+    }
+
+    public void refreshLineups() {
+        if (league == null) {
+            return;
+        }
+
+        for (Team team : league.getTeams()) {
+            if (team.getStartingLineup().isEmpty()) {
+                team.generateDefaultLineup();
+            }
+        }
+    }
+
 
     public boolean trainUserTeam(String type) {
         if (userTeam == null || isSeasonFinished() || trainingsThisWeek >= MAX_TRAININGS_PER_WEEK) {
@@ -111,6 +136,7 @@ public class GameManager implements java.io.Serializable{
         training.setTrainingType(type);
         training.applyTraining(userTeam);
         trainingsThisWeek++;
+        addNews(userTeam.getName() + " completed a " + type + " training session. Weekly sessions: " + trainingsThisWeek + "/" + MAX_TRAININGS_PER_WEEK + ".");
         return true;
     }
 
@@ -128,10 +154,79 @@ public class GameManager implements java.io.Serializable{
 
     public void playNextWeek() {
         if (league != null && !league.seasonFinished()) {
-            league.playNextWeek();
+            league.playNextWeek(userTeam);
+            generateWeeklyNews();
             recoverAllPlayers();
             trainingsThisWeek = 0;
         }
+    }
+
+    private void generateWeeklyNews() {
+        if (league == null) {
+            return;
+        }
+
+        for (Match match : league.getLastWeekMatches()) {
+            addNews(buildMatchNews(match));
+
+            for (String event : match.getMatchEvents()) {
+                if (event.contains("Injury")) {
+                    addNews(event);
+                }
+            }
+        }
+
+        if (userTeam != null) {
+            int rank = getUserTeamRank();
+            addNews(userTeam.getName() + " is currently ranked " + rank + " in the league with " + userTeam.getPoints() + " points.");
+        }
+    }
+
+    private String buildMatchNews(Match match) {
+        Team home = match.getHomeTeam();
+        Team away = match.getAwayTeam();
+        String score = home.getName() + " " + match.getHomeScore() + " - " + match.getAwayScore() + " " + away.getName();
+
+        if (match.getHomeScore() > match.getAwayScore()) {
+            return home.getName() + " defeated " + away.getName() + ". Final score: " + score + ".";
+        }
+
+        if (match.getAwayScore() > match.getHomeScore()) {
+            return away.getName() + " defeated " + home.getName() + ". Final score: " + score + ".";
+        }
+
+        return home.getName() + " and " + away.getName() + " shared the points. Final score: " + score + ".";
+    }
+
+    public void addNews(String news) {
+        if (news == null || news.isBlank()) {
+            return;
+        }
+
+        newsItems.add(0, news);
+
+        if (newsItems.size() > 8) {
+            newsItems.remove(newsItems.size() - 1);
+        }
+    }
+
+    public List<String> getNewsItems() {
+        return newsItems;
+    }
+
+    public int getUserTeamRank() {
+        if (league == null || userTeam == null) {
+            return 0;
+        }
+
+        List<Team> standings = league.getStandings();
+        for (int i = 0; i < standings.size(); i++) {
+            if (standings.get(i).getName().equals(userTeam.getName())) {
+                return i + 1;
+            }
+        }
+
+        return 0;
     }
 
     private void recoverAllPlayers() {

@@ -12,6 +12,8 @@ public class Team implements java.io.Serializable {
 
     private String name;
     private List<Player> players;
+    private List<Player> startingLineup;
+    private List<Player> substitutes;
     private List<Coach> coaches;
     private int points;
     private String tactic;
@@ -19,6 +21,8 @@ public class Team implements java.io.Serializable {
     public Team(String name) {
         this.name = name;
         this.players = new ArrayList<>();
+        this.startingLineup = new ArrayList<>();
+        this.substitutes = new ArrayList<>();
         this.coaches = new ArrayList<>();
         this.points = 0;
         this.tactic = "Balanced";
@@ -37,6 +41,14 @@ public class Team implements java.io.Serializable {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    public List<Player> getStartingLineup() {
+        return startingLineup;
+    }
+
+    public List<Player> getSubstitutes() {
+        return substitutes;
     }
 
     public List<Coach> getCoaches() {
@@ -81,6 +93,125 @@ public class Team implements java.io.Serializable {
 
     public void addPlayer(Player player) {
         players.add(player);
+    }
+
+    public void generateDefaultLineup() {
+        startingLineup.clear();
+        substitutes.clear();
+
+        List<Player> availablePlayers = getAvailablePlayers();
+        int targetLineupSize = getTargetLineupSize();
+
+        if (isFootballTeam()) {
+            addBestPlayersByPosition("Goalkeeper", 1, targetLineupSize);
+            addBestPlayersByPosition("Defender", 4, targetLineupSize);
+            addBestPlayersByPosition("Midfielder", 3, targetLineupSize);
+            addBestPlayersByPosition("Forward", 3, targetLineupSize);
+        } else if (isVolleyballTeam()) {
+            addBestPlayersByPosition("Setter", 1, targetLineupSize);
+            addBestPlayersByPosition("Outside Hitter", 2, targetLineupSize);
+            addBestPlayersByPosition("Middle Blocker", 1, targetLineupSize);
+            addBestPlayersByPosition("Opposite Hitter", 1, targetLineupSize);
+            addBestPlayersByPosition("Libero", 1, targetLineupSize);
+        }
+
+        for (Player player : availablePlayers) {
+            if (startingLineup.size() < targetLineupSize && !startingLineup.contains(player)) {
+                startingLineup.add(player);
+            }
+        }
+
+        for (Player player : players) {
+            if (!startingLineup.contains(player)) {
+                substitutes.add(player);
+            }
+        }
+    }
+
+    private int getTargetLineupSize() {
+        if (isVolleyballTeam()) {
+            return 6;
+        }
+        return 11;
+    }
+
+    private boolean isFootballTeam() {
+        return hasPosition("Goalkeeper") || hasPosition("Defender") || hasPosition("Midfielder") || hasPosition("Forward");
+    }
+
+    private boolean isVolleyballTeam() {
+        return hasPosition("Setter") || hasPosition("Outside Hitter") || hasPosition("Middle Blocker") || hasPosition("Opposite Hitter") || hasPosition("Libero");
+    }
+
+    private boolean hasPosition(String position) {
+        for (Player player : players) {
+            if (player.getPosition().equalsIgnoreCase(position)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addBestPlayersByPosition(String position, int count, int targetLineupSize) {
+        List<Player> matchingPlayers = new ArrayList<>();
+
+        for (Player player : getAvailablePlayers()) {
+            if (player.getPosition().equalsIgnoreCase(position)) {
+                matchingPlayers.add(player);
+            }
+        }
+
+        matchingPlayers.sort((p1, p2) -> Integer.compare(p2.getSkillLevel(), p1.getSkillLevel()));
+
+        for (Player player : matchingPlayers) {
+            if (startingLineup.size() >= targetLineupSize || count <= 0) {
+                return;
+            }
+
+            if (!startingLineup.contains(player)) {
+                startingLineup.add(player);
+                count--;
+            }
+        }
+    }
+
+    public boolean substitutePlayer(Player playerOut, Player playerIn) {
+        if (playerOut == null || playerIn == null) {
+            return false;
+        }
+
+        if (playerIn.isInjured()) {
+            return false;
+        }
+
+        if (!startingLineup.contains(playerOut) || !substitutes.contains(playerIn)) {
+            return false;
+        }
+
+        int outIndex = startingLineup.indexOf(playerOut);
+        int inIndex = substitutes.indexOf(playerIn);
+
+        startingLineup.set(outIndex, playerIn);
+        substitutes.set(inIndex, playerOut);
+        return true;
+    }
+
+    public boolean isInStartingLineup(Player player) {
+        return startingLineup.contains(player);
+    }
+
+    public boolean isSubstitute(Player player) {
+        return substitutes.contains(player);
+    }
+
+    public List<Player> getAvailableStartingLineup() {
+        List<Player> available = new ArrayList<>();
+        for (Player player : startingLineup) {
+            if (player.isAvailable()) {
+                available.add(player);
+            }
+        }
+        return available;
     }
 
     public void addCoach(Coach coach) {
@@ -192,6 +323,8 @@ public class Team implements java.io.Serializable {
                 ", Points: " + points +
                 ", W-D-L: " + wins + "-" + draws + "-" + losses +
                 ", GD: " + getGoalDifference() +
-                ", Players: " + players.size();
+                ", Players: " + players.size() +
+                ", Starting Lineup: " + startingLineup.size() +
+                ", Subs: " + substitutes.size();
     }
 }
