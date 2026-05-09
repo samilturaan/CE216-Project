@@ -7,6 +7,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import java.util.List;
 
 public class LiveMatchScreen {
 
@@ -22,6 +23,7 @@ public class LiveMatchScreen {
     private final Label foulsLabel;
     private final ProgressBar homePossessionBar;
     private final ProgressBar awayPossessionBar;
+    private VBox setScoresBox;
 
     public LiveMatchScreen(Match match, GameManager gameManager) {
         this.match = match;
@@ -155,30 +157,33 @@ public class LiveMatchScreen {
 
         VBox statsContent = new VBox(12);
 
-        Label possessionTitle = statTitle("POSSESSION");
+        if (match.getSport().getSportName().equals("Volleyball")) {
+            setScoresBox = new VBox(10);
+            statsContent.getChildren().addAll(statTitle("SET SCORES"), setScoresBox);
+        } else {
+            homePossessionBar.setPrefWidth(250);
+            awayPossessionBar.setPrefWidth(250);
+            homePossessionBar.setStyle("-fx-accent: #3b82f6;");
+            awayPossessionBar.setStyle("-fx-accent: #ef4444;");
 
-        homePossessionBar.setPrefWidth(250);
-        awayPossessionBar.setPrefWidth(250);
-        homePossessionBar.setStyle("-fx-accent: #3b82f6;");
-        awayPossessionBar.setStyle("-fx-accent: #ef4444;");
+            possessionLabel.setStyle(statValueStyle());
+            shotsLabel.setStyle(statValueStyle());
+            shotsOnTargetLabel.setStyle(statValueStyle());
+            foulsLabel.setStyle(statValueStyle());
 
-        possessionLabel.setStyle(statValueStyle());
-        shotsLabel.setStyle(statValueStyle());
-        shotsOnTargetLabel.setStyle(statValueStyle());
-        foulsLabel.setStyle(statValueStyle());
-
-        statsContent.getChildren().addAll(
-                possessionTitle,
-                homePossessionBar,
-                awayPossessionBar,
-                possessionLabel,
-                statTitle("SHOTS"),
-                shotsLabel,
-                statTitle("SHOTS ON TARGET"),
-                shotsOnTargetLabel,
-                statTitle("FOULS"),
-                foulsLabel
-        );
+            statsContent.getChildren().addAll(
+                    statTitle("POSSESSION"),
+                    homePossessionBar,
+                    awayPossessionBar,
+                    possessionLabel,
+                    statTitle("SHOTS"),
+                    shotsLabel,
+                    statTitle("SHOTS ON TARGET"),
+                    shotsOnTargetLabel,
+                    statTitle("FOULS"),
+                    foulsLabel
+            );
+        }
 
         panel.getChildren().addAll(title, statsContent);
         return panel;
@@ -227,17 +232,29 @@ public class LiveMatchScreen {
             eventList.getChildren().add(lbl);
         }
 
-        int homePoss = match.getHomePossession();
-        int awayPoss = match.getAwayPossession();
+        if (match.getSport().getSportName().equals("Volleyball")) {
+            if (setScoresBox != null) {
+                setScoresBox.getChildren().clear();
+                List<String> scores = match.getSetScores();
+                for (int i = 0; i < scores.size(); i++) {
+                    Label l = new Label("Set " + (i + 1) + ":  " + scores.get(i));
+                    l.setStyle(statValueStyle());
+                    setScoresBox.getChildren().add(l);
+                }
+            }
+        } else {
+            int homePoss = match.getHomePossession();
+            int awayPoss = match.getAwayPossession();
 
-        homePossessionBar.setProgress(homePoss / 100.0);
-        awayPossessionBar.setProgress(awayPoss / 100.0);
+            homePossessionBar.setProgress(homePoss / 100.0);
+            awayPossessionBar.setProgress(awayPoss / 100.0);
 
-        possessionLabel.setText(match.getHomeTeam().getName() + " " + homePoss + "%  -  " + awayPoss + "% " + match.getAwayTeam().getName());
+            possessionLabel.setText(match.getHomeTeam().getName() + " " + homePoss + "%  -  " + awayPoss + "% " + match.getAwayTeam().getName());
 
-        shotsLabel.setText(match.getHomeShots() + " - " + match.getAwayShots());
-        shotsOnTargetLabel.setText(match.getHomeShotsOnTarget() + " - " + match.getAwayShotsOnTarget());
-        foulsLabel.setText(match.getHomeFouls() + " - " + match.getAwayFouls());
+            shotsLabel.setText(match.getHomeShots() + " - " + match.getAwayShots());
+            shotsOnTargetLabel.setText(match.getHomeShotsOnTarget() + " - " + match.getAwayShotsOnTarget());
+            foulsLabel.setText(match.getHomeFouls() + " - " + match.getAwayFouls());
+        }
     }
 
     private void showTacticDialog() {

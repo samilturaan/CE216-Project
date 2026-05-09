@@ -7,8 +7,7 @@
     <list default="true" id="649a1940-ab71-46be-8b5d-90310e7cbfe0" name="Changes" comment="önceden oluşturulan iskelete basit metod eklemeleri ve demo bir maç simülasyonu oluşturuldu">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/LiveMatchScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/LiveMatchScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MainScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MainScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/SceneManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SceneManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Match.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Match.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

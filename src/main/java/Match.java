@@ -15,6 +15,7 @@ public class Match implements java.io.Serializable{
     private int currentPeriod;
     private List<String> matchEvents;
     private List<String> lastPeriodEvents;
+    private List<String> setScores;
 
     private int homeShots;
     private int awayShots;
@@ -35,6 +36,7 @@ public class Match implements java.io.Serializable{
         this.currentPeriod = 1;
         this.matchEvents = new ArrayList<>();
         this.lastPeriodEvents = new ArrayList<>();
+        this.setScores = new ArrayList<>();
         this.homeShots = 0;
         this.awayShots = 0;
         this.homeShotsOnTarget = 0;
@@ -68,25 +70,33 @@ public class Match implements java.io.Serializable{
                 if (random.nextBoolean()) hStrength++; else aStrength++;
             }
 
+            // 25 veya 5. set ise 15
+            int targetScore = (playedPeriod == 5) ? 15 : 25;
+            int hSetPoints = 0, aSetPoints = 0;
+
+            // %20 İhtimalle set uzar (Deuce: 24-24 olur)
+            boolean isDeuce = random.nextInt(5) == 0;
+            int winnerPts = targetScore;
+            int loserPts = targetScore - 2 - random.nextInt(6);
+
+            if (isDeuce) {
+                winnerPts = targetScore + 1 + random.nextInt(4);
+                loserPts = winnerPts - 2;
+            }
+
             if (hStrength > aStrength) {
                 homeScore++;
-                Player scorer = pickRandomAvailablePlayer(homeTeam, random);
-                if (scorer != null) {
-                    scorer.scoreGoal();
-                    addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + homeTeam.getName() + " wins the set. Key player: " + scorer.getName());
-                } else {
-                    addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + homeTeam.getName() + " wins the set.");
-                }
+                hSetPoints = winnerPts;
+                aSetPoints = loserPts;
+                addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + homeTeam.getName() + " wins the set (" + hSetPoints + " - " + aSetPoints + ").");
             } else {
                 awayScore++;
-                Player scorer = pickRandomAvailablePlayer(awayTeam, random);
-                if (scorer != null) {
-                    scorer.scoreGoal();
-                    addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + awayTeam.getName() + " wins the set. Key player: " + scorer.getName());
-                } else {
-                    addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + awayTeam.getName() + " wins the set.");
-                }
+                aSetPoints = winnerPts;
+                hSetPoints = loserPts;
+                addMatchEvent(sport.getPeriodName() + " " + playedPeriod + ": " + awayTeam.getName() + " wins the set (" + hSetPoints + " - " + aSetPoints + ").");
             }
+
+            setScores.add(hSetPoints + " - " + aSetPoints);
         } else {
             homeScore += hStrength;
             awayScore += aStrength;
@@ -316,5 +326,9 @@ public class Match implements java.io.Serializable{
 
     public int getAwayScore() {
         return awayScore;
+    }
+
+    public List<String> getSetScores() {
+        return setScores;
     }
 }
