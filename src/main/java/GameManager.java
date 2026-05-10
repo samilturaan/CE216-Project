@@ -45,30 +45,87 @@ public class GameManager implements java.io.Serializable{
     }
 
     public void startNewGame(String userTeamName) {
-        if (selectedSport == null) {
-            return;
-        }
+        if (selectedSport == null) return;
 
-        league = new League(selectedSport);
-        trainingsThisWeek = 0;
-        newsItems.clear();
         userTeam = new Team(userTeamName);
 
-        generatePlayersForTeam(userTeam);
-        userTeam.generateDefaultLineup();
-        userTeam.addCoach(new Coach(nameGenerator.getRandomCoachName(), 45, 5));
+        league = new League(selectedSport);
         league.addTeam(userTeam);
 
-        for (int i = 1; i <= 7; i++) {
-            Team cpuTeam = new Team(nameGenerator.getRandomTeamName());
-            generatePlayersForTeam(cpuTeam);
-            cpuTeam.generateDefaultLineup();
-            cpuTeam.addCoach(new Coach(nameGenerator.getRandomCoachName(), 40 + i, 3 + i));
-            league.addTeam(cpuTeam);
+        int onField = selectedSport.getPlayersOnField();
+        int subsCount = selectedSport.getSubstitutesCount();
+
+        for (int i = 0; i < onField; i++) {
+            String pos = getInitialPositionForSport(i, selectedSport.getSportName());
+            Player p = new Player(nameGenerator.getRandomPlayerName(), 20 + new Random().nextInt(12), pos, 70 + new Random().nextInt(10));
+            userTeam.getPlayers().add(p);
+            userTeam.getStartingLineup().add(p);
+        }
+
+        for (int i = 0; i < subsCount; i++) {
+            String pos = getInitialPositionForSport(new Random().nextInt(onField), selectedSport.getSportName());
+            Player p = new Player(nameGenerator.getRandomPlayerName(), 18 + new Random().nextInt(15), pos, 60 + new Random().nextInt(10));
+            userTeam.getPlayers().add(p);
+            userTeam.getSubstitutes().add(p);
+        }
+        userTeam.getCoaches().add(new Coach(nameGenerator.getRandomCoachName(), 45, 70));
+
+        for (int k = 0; k < 17; k++) {
+            Team aiTeam = new Team(nameGenerator.getRandomTeamName() + " FC");
+
+            for (int i = 0; i < onField; i++) {
+                String pos = getInitialPositionForSport(i, selectedSport.getSportName());
+                Player p = new Player(nameGenerator.getRandomPlayerName(), 20 + new Random().nextInt(12), pos, 50 + new Random().nextInt(25));
+                aiTeam.getPlayers().add(p);
+                aiTeam.getStartingLineup().add(p);
+            }
+            for (int i = 0; i < subsCount; i++) {
+                String pos = getInitialPositionForSport(new Random().nextInt(onField), selectedSport.getSportName());
+                Player p = new Player(nameGenerator.getRandomPlayerName(), 18 + new Random().nextInt(15), pos, 45 + new Random().nextInt(20));
+                aiTeam.getPlayers().add(p);
+                aiTeam.getSubstitutes().add(p);
+            }
+            aiTeam.getCoaches().add(new Coach(nameGenerator.getRandomCoachName(), 50, 65));
+            league.addTeam(aiTeam);
         }
 
         league.generateFixtures();
-        addNews("New " + selectedSport.getSportName() + " season started. " + userTeam.getName() + " enters the league with a fresh squad.");
+        trainingsThisWeek = 0;
+        newsItems.clear();
+        newsItems.add("Breaking: " + userTeamName + " joins the " + selectedSport.getSportName() + " league!");
+    }
+
+
+    private String getInitialPositionForSport(int index, String sportName) {
+        if ("Handball".equals(sportName)) {
+            return switch (index) {
+                case 0 -> "Goalkeeper";
+                case 1 -> "Left Wing";
+                case 2 -> "Left Back";
+                case 3 -> "Center Back";
+                case 4 -> "Right Back";
+                case 5 -> "Right Wing";
+                case 6 -> "Pivot";
+                default -> "Player";
+            };
+        } else if ("Volleyball".equals(sportName)) {
+            return switch (index) {
+                case 0 -> "Setter";
+                case 1 -> "Outside Hitter";
+                case 2 -> "Middle Blocker";
+                case 3 -> "Opposite Hitter";
+                case 4 -> "Libero";
+                case 5 -> "Middle Blocker";
+                default -> "Player";
+            };
+        }
+
+        return switch (index) {
+            case 0 -> "Goalkeeper";
+            case 1, 2, 3, 4 -> "Defender";
+            case 5, 6, 7 -> "Midfielder";
+            default -> "Forward";
+        };
     }
 
     private void generatePlayersForTeam(Team team) {

@@ -6,6 +6,7 @@ TeamSetupScreen.class
 Match.class
 SplashScreen.class
 Team.class
+Handball.class
 Person.class
 SportSelectScreen.class
 Coach.class

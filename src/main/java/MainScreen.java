@@ -1406,11 +1406,12 @@ public class MainScreen {
                 {1, 2}, {2, 2}, {3, 2}
         };
 
+
         int[][] compactPositions = {
                 {2, 5},
-                {1, 4}, {3, 4},
-                {0, 3}, {2, 3}, {4, 3},
-                {2, 2}
+                {0, 4}, {4, 4},
+                {1, 3}, {2, 3}, {3, 3},
+                {2, 1}
         };
 
         if (lineupSize <= 7) {
@@ -1432,15 +1433,24 @@ public class MainScreen {
             return "POS";
         }
         return switch (position) {
+            // Football
             case "Goalkeeper" -> "GK";
             case "Defender" -> "DEF";
             case "Midfielder" -> "MID";
             case "Forward" -> "FWD";
+            // Volleyball
             case "Setter" -> "SET";
             case "Outside Hitter" -> "OH";
             case "Middle Blocker" -> "MB";
             case "Opposite Hitter" -> "OPP";
             case "Libero" -> "LIB";
+            // Handball
+            case "Left Wing" -> "LW";
+            case "Left Back" -> "LB";
+            case "Center Back" -> "CB";
+            case "Right Back" -> "RB";
+            case "Right Wing" -> "RW";
+            case "Pivot" -> "PIV";
             default -> position;
         };
     }

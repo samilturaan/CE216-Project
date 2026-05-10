@@ -34,7 +34,8 @@ public class SportSelectScreen {
         cards.setAlignment(Pos.CENTER);
         cards.getChildren().addAll(
                 buildCard("⚽", "FOOTBALL", "11 vs 11  •  5 substitutes", "Win: 3pts  •  Draw: 1pt  •  Loss: 0pts", "#1d4ed8", "#3b82f6", new Football()),
-                buildCard("🏐", "VOLLEYBALL", "6 vs 6  •  6 substitutes", "Win: 3pts  •  No draws  •  Loss: 0pts", "#6d28d9", "#a78bfa", new Volleyball())
+                buildCard("🏐", "VOLLEYBALL", "6 vs 6  •  6 substitutes", "Win: 3pts  •  No draws  •  Loss: 0pts", "#6d28d9", "#a78bfa", new Volleyball()),
+                buildCard("🤾", "HANDBALL", "7 vs 7  •  7 substitutes", "Win: 2pts  •  Draw: 1pt  •  Loss: 0pts", "#c2410c", "#f97316", new Handball())
         );
 
         Button back = new Button("← Back");

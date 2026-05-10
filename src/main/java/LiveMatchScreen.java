@@ -820,15 +820,24 @@ public class LiveMatchScreen {
             return "POS";
         }
         return switch (position) {
+            // Football
             case "Goalkeeper" -> "GK";
             case "Defender" -> "DEF";
             case "Midfielder" -> "MID";
             case "Forward" -> "FWD";
+            // Volleyball
             case "Setter" -> "SET";
             case "Outside Hitter" -> "OH";
             case "Middle Blocker" -> "MB";
             case "Opposite Hitter" -> "OPP";
             case "Libero" -> "LIB";
+            // Handball
+            case "Left Wing" -> "LW";
+            case "Left Back" -> "LB";
+            case "Center Back" -> "CB";
+            case "Right Back" -> "RB";
+            case "Right Wing" -> "RW";
+            case "Pivot" -> "PIV";
             default -> position;
         };
     }

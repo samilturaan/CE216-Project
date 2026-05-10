@@ -15,8 +15,17 @@ public class TeamSetupScreen {
 
         ISport sport = SceneManager.getGameManager().getSelectedSport();
         String sportName = sport != null ? sport.getSportName() : "Sport";
-        String emoji = "Football".equals(sportName) ? "⚽" : "🏐";
-        String accent = "Football".equals(sportName) ? "#3b82f6" : "#a78bfa";
+        String emoji = switch (sportName) {
+            case "Football" -> "⚽";
+            case "Handball" -> "🤾";
+            default -> "🏐";
+        };
+
+        String accent = switch (sportName) {
+            case "Football" -> "#3b82f6";
+            case "Handball" -> "#f97316";
+            default -> "#a78bfa";
+        };
 
         VBox content = new VBox(24);
         content.setAlignment(Pos.CENTER);
