@@ -1,12 +1,18 @@
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SportsManagerTest {
 
     private Football football;
     private Volleyball volleyball;
+    private Handball handball;
     private Team team;
     private Player player;
     private Coach coach;
@@ -17,6 +23,7 @@ public class SportsManagerTest {
     public void setUp() {
         football   = new Football();
         volleyball = new Volleyball();
+        handball   = new Handball();
         team       = new Team("Test Team");
         player     = new Player("Ali Yilmaz", 22, "Forward", 75);
         coach      = new Coach("Ahmet Hoca", 45, 5);
@@ -24,9 +31,7 @@ public class SportsManagerTest {
         gameManager = new GameManager();
     }
 
-    // ===========================
-    // Football (ISport) Tests
-    // ===========================
+    // Football tests
 
     @Test
     public void testFootballSportName() {
@@ -58,9 +63,7 @@ public class SportsManagerTest {
         assertEquals(0, football.getPointsForLoss());
     }
 
-    // ===========================
-    // Volleyball Tests
-    // ===========================
+    // volleyball tests
 
     @Test
     public void testVolleyballSportName() {
@@ -82,10 +85,31 @@ public class SportsManagerTest {
         assertEquals(3, volleyball.getPointsForWin());
     }
 
-    // ===========================
-    // Player Tests
-    // ===========================
+    // Handball tests
 
+    @Test
+    public void testHandballSportName() {
+        assertEquals("Handball", handball.getSportName());
+    }
+
+    @Test
+    public void testHandballPlayersOnField() {
+        assertEquals(7, handball.getPlayersOnField());
+    }
+
+    @Test
+    public void testHandballSubstitutesCount() {
+        assertEquals(7, handball.getSubstitutesCount());
+    }
+
+    @Test
+    public void testHandballPointsForWinDrawLoss() {
+        assertEquals(2, handball.getPointsForWin());
+        assertEquals(1, handball.getPointsForDraw());
+        assertEquals(0, handball.getPointsForLoss());
+    }
+
+    // Player Tests
     @Test
     public void testPlayerInitialAvailability() {
         assertTrue(player.isAvailable());
@@ -180,10 +204,7 @@ public class SportsManagerTest {
         assertEquals(100, player.getStamina());
     }
 
-    // ===========================
     // Coach Tests
-    // ===========================
-
     @Test
     public void testCoachInitialState() {
         assertEquals("Ahmet Hoca", coach.getName());
@@ -204,10 +225,7 @@ public class SportsManagerTest {
         assertEquals(7, coach.getExperienceLevel());
     }
 
-    // ===========================
-    // Team Tests
-    // ===========================
-
+    // team tests
     @Test
     public void testTeamStartsWithZeroPoints() {
         assertEquals(0, team.getPoints());
@@ -336,9 +354,76 @@ public class SportsManagerTest {
         assertEquals(3, team.getTotalGoalsScoredByPlayers());
     }
 
-    // ===========================
+
+    @Test
+    public void testFootballDefaultLineupCreatesElevenStartersAndBench() {
+        Team footballTeam = createFootballTeam("Football Team");
+        footballTeam.generateDefaultLineup();
+
+        assertEquals(11, footballTeam.getStartingLineup().size());
+        assertEquals(11, footballTeam.getSubstitutes().size());
+        assertEquals(22, footballTeam.getPlayers().size());
+        assertEquals(1, footballTeam.getStartingLineup().stream()
+                .filter(p -> p.getPosition().equals("Goalkeeper"))
+                .count());
+    }
+
+    @Test
+    public void testVolleyballDefaultLineupCreatesStartingSixAndBench() {
+        Team volleyballTeam = createVolleyballTeam("Volleyball Team");
+        volleyballTeam.generateDefaultLineup();
+
+        assertEquals(6, volleyballTeam.getStartingLineup().size());
+        assertEquals(8, volleyballTeam.getSubstitutes().size());
+        assertEquals(14, volleyballTeam.getPlayers().size());
+        assertTrue(volleyballTeam.getStartingLineup().stream()
+                .anyMatch(p -> p.getPosition().equals("Setter")));
+        assertTrue(volleyballTeam.getStartingLineup().stream()
+                .anyMatch(p -> p.getPosition().equals("Libero")));
+    }
+
+    @Test
+    public void testHandballDefaultLineupCreatesStartingSevenAndBench() {
+        Team handballTeam = createHandballTeam("Handball Team");
+        handballTeam.generateDefaultLineup();
+
+        assertEquals(7, handballTeam.getStartingLineup().size());
+        assertEquals(7, handballTeam.getSubstitutes().size());
+        assertEquals(14, handballTeam.getPlayers().size());
+        assertTrue(handballTeam.getStartingLineup().stream()
+                .anyMatch(p -> p.getPosition().equals("Goalkeeper")));
+        assertTrue(handballTeam.getStartingLineup().stream()
+                .anyMatch(p -> p.getPosition().equals("Pivot")));
+    }
+
+    @Test
+    public void testTeamSubstitutionSwapsStarterAndBenchPlayer() {
+        Team footballTeam = createFootballTeam("Sub Team");
+        footballTeam.generateDefaultLineup();
+
+        Player starter = footballTeam.getStartingLineup().get(0);
+        Player substitute = footballTeam.getSubstitutes().get(0);
+
+        assertTrue(footballTeam.substitutePlayer(starter, substitute));
+        assertTrue(footballTeam.getStartingLineup().contains(substitute));
+        assertTrue(footballTeam.getSubstitutes().contains(starter));
+        assertFalse(footballTeam.getStartingLineup().contains(starter));
+    }
+
+    @Test
+    public void testTeamSubstitutionRejectsInjuredBenchPlayer() {
+        Team footballTeam = createFootballTeam("Injury Sub Team");
+        footballTeam.generateDefaultLineup();
+
+        Player starter = footballTeam.getStartingLineup().get(0);
+        Player substitute = footballTeam.getSubstitutes().get(0);
+        substitute.injure(2);
+
+        assertFalse(footballTeam.substitutePlayer(starter, substitute));
+        assertTrue(footballTeam.getStartingLineup().contains(starter));
+        assertTrue(footballTeam.getSubstitutes().contains(substitute));
+    }
     // Match Tests
-    // ===========================
 
     @Test
     public void testMatchInitiallyNotPlayed() {
@@ -453,9 +538,97 @@ public class SportsManagerTest {
         assertTrue(playerGoals <= matchGoals);
     }
 
-    // ===========================
+
+    @Test
+    public void testLiveFootballPeriodRevealsEventsGradually() {
+        Team home = createFootballTeam("Home Live");
+        Team away = createFootballTeam("Away Live");
+        home.generateDefaultLineup();
+        away.generateDefaultLineup();
+
+        Match match = new Match(home, away, football);
+        match.prepareNextPeriodForLive();
+
+        assertTrue(match.hasPendingLiveEvents());
+        int beforeEvents = match.getMatchEvents().size();
+        String revealed = match.revealNextLiveEvent();
+
+        assertNotNull(revealed);
+        assertEquals(beforeEvents + 1, match.getMatchEvents().size());
+    }
+
+    @Test
+    public void testLiveFootballPeriodCanBeFullyRevealed() {
+        Team home = createFootballTeam("Home Full Live");
+        Team away = createFootballTeam("Away Full Live");
+        home.generateDefaultLineup();
+        away.generateDefaultLineup();
+
+        Match match = new Match(home, away, football);
+        match.prepareNextPeriodForLive();
+
+        while (match.hasPendingLiveEvents()) {
+            match.revealNextLiveEvent();
+        }
+
+        assertEquals(2, match.getCurrentPeriod());
+        assertFalse(match.getMatchEvents().isEmpty());
+    }
+
+    @Test
+    public void testVolleyballLiveSetCreatesRallyStyleEventsAndSetScore() {
+        Team home = createVolleyballTeam("Home Volley");
+        Team away = createVolleyballTeam("Away Volley");
+        home.generateDefaultLineup();
+        away.generateDefaultLineup();
+
+        Match match = new Match(home, away, volleyball);
+        match.prepareNextPeriodForLive();
+
+        assertTrue(match.hasPendingLiveEvents());
+
+        while (match.hasPendingLiveEvents()) {
+            match.revealNextLiveEvent();
+        }
+
+        assertEquals(2, match.getCurrentPeriod());
+        assertEquals(1, match.getSetScores().size());
+        assertTrue(match.getMatchEvents().stream().anyMatch(event ->
+                event.contains("Service ace")
+                        || event.contains("Power spike")
+                        || event.contains("Monster block")
+                        || event.contains("Set point converted")));
+    }
+
+    @Test
+    public void testHandballLivePeriodCreatesHandballEventsAndRealisticScore() {
+        Team home = createHandballTeam("Home Handball");
+        Team away = createHandballTeam("Away Handball");
+        home.generateDefaultLineup();
+        away.generateDefaultLineup();
+
+        Match match = new Match(home, away, handball);
+        match.prepareNextPeriodForLive();
+
+        assertTrue(match.hasPendingLiveEvents());
+
+        while (match.hasPendingLiveEvents()) {
+            match.revealNextLiveEvent();
+        }
+
+        assertEquals(2, match.getCurrentPeriod());
+        assertTrue(match.getHomeScore() >= 6);
+        assertTrue(match.getAwayScore() >= 6);
+        assertTrue(match.getMatchEvents().stream().anyMatch(event ->
+                event.contains("Fast break")
+                        || event.contains("Wing shot")
+                        || event.contains("Backcourt")
+                        || event.contains("Pivot finish")
+                        || event.contains("7-meter")
+                        || event.contains("Quick transition")));
+    }
+
     // League Tests
-    // ===========================
 
     @Test
     public void testLeagueFixtureCountForThreeTeams() {
@@ -570,9 +743,7 @@ public class SportsManagerTest {
         assertEquals(2, league.getFixtures().stream().filter(Match::isPlayed).count());
     }
 
-    // ===========================
     // Training Tests
-    // ===========================
 
     @Test
     public void testTrainingImprovesSkill() {
@@ -607,10 +778,7 @@ public class SportsManagerTest {
         assertFalse(generator.getRandomCoachName().isBlank());
         assertFalse(generator.getRandomTeamName().isBlank());
     }
-
-    // ===========================
     // GameManager Tests
-    // ===========================
 
     @Test
     public void testGameManagerSelectSport() {
@@ -653,7 +821,7 @@ public class SportsManagerTest {
     public void testGameManagerTrainDoesNotThrow() {
         gameManager.selectSport(football);
         gameManager.startNewGame("My Team");
-        assertDoesNotThrow(() -> gameManager.trainUserTeam());
+        assertDoesNotThrow(() -> gameManager.trainUserTeam("Fitness"));
     }
 
     @Test
@@ -662,10 +830,10 @@ public class SportsManagerTest {
         gameManager.startNewGame("My Team");
 
         for (int i = 0; i < 5; i++) {
-            assertTrue(gameManager.trainUserTeam());
+            assertTrue(gameManager.trainUserTeam("Fitness"));
         }
 
-        assertFalse(gameManager.trainUserTeam());
+        assertFalse(gameManager.trainUserTeam("Fitness"));
         assertEquals(5, gameManager.getTrainingsThisWeek());
     }
 
@@ -675,7 +843,7 @@ public class SportsManagerTest {
         gameManager.startNewGame("My Team");
 
         for (int i = 0; i < 5; i++) {
-            gameManager.trainUserTeam();
+            gameManager.trainUserTeam("Fitness");
         }
 
         assertFalse(gameManager.canTrainUserTeam());
@@ -685,10 +853,10 @@ public class SportsManagerTest {
     }
 
     @Test
-    public void testGameManagerCreatesEightTeams() {
+    public void testGameManagerCreatesEighteenTeams() {
         gameManager.selectSport(football);
         gameManager.startNewGame("My Team");
-        assertEquals(8, gameManager.getLeague().getTeams().size());
+        assertEquals(18, gameManager.getLeague().getTeams().size());
     }
 
     @Test
@@ -716,6 +884,33 @@ public class SportsManagerTest {
         assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Libero")));
     }
 
+
+    @Test
+    public void testGameManagerCreatesSportSpecificHandballPositions() {
+        gameManager.selectSport(handball);
+        gameManager.startNewGame("My Team");
+
+        List<Player> players = gameManager.getUserTeam().getPlayers();
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Goalkeeper")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Left Wing")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Left Back")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Center Back")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Right Back")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Right Wing")));
+        assertTrue(players.stream().anyMatch(p -> p.getPosition().equals("Pivot")));
+    }
+
+    @Test
+    public void testGameManagerCreatesFullHandballSquadAndStartingSeven() {
+        gameManager.selectSport(handball);
+        gameManager.startNewGame("My Team");
+
+        Team userTeam = gameManager.getUserTeam();
+        assertEquals(14, userTeam.getPlayers().size());
+        assertEquals(7, userTeam.getStartingLineup().size());
+        assertEquals(7, userTeam.getSubstitutes().size());
+    }
+
     @Test
     public void testGameManagerTeamHasPlayers() {
         gameManager.selectSport(football);
@@ -728,5 +923,41 @@ public class SportsManagerTest {
         gameManager.selectSport(football);
         gameManager.selectSport(volleyball);
         assertEquals("Volleyball", gameManager.getSelectedSport().getSportName());
+    }
+    private Team createFootballTeam(String name) {
+        Team footballTeam = new Team(name);
+        addPlayers(footballTeam, "Goalkeeper", 2);
+        addPlayers(footballTeam, "Defender", 7);
+        addPlayers(footballTeam, "Midfielder", 8);
+        addPlayers(footballTeam, "Forward", 5);
+        return footballTeam;
+    }
+
+    private Team createVolleyballTeam(String name) {
+        Team volleyballTeam = new Team(name);
+        addPlayers(volleyballTeam, "Setter", 2);
+        addPlayers(volleyballTeam, "Outside Hitter", 4);
+        addPlayers(volleyballTeam, "Middle Blocker", 4);
+        addPlayers(volleyballTeam, "Opposite Hitter", 2);
+        addPlayers(volleyballTeam, "Libero", 2);
+        return volleyballTeam;
+    }
+
+    private Team createHandballTeam(String name) {
+        Team handballTeam = new Team(name);
+        addPlayers(handballTeam, "Goalkeeper", 2);
+        addPlayers(handballTeam, "Left Wing", 2);
+        addPlayers(handballTeam, "Left Back", 2);
+        addPlayers(handballTeam, "Center Back", 2);
+        addPlayers(handballTeam, "Right Back", 2);
+        addPlayers(handballTeam, "Right Wing", 2);
+        addPlayers(handballTeam, "Pivot", 2);
+        return handballTeam;
+    }
+
+    private void addPlayers(Team targetTeam, String position, int count) {
+        for (int i = 1; i <= count; i++) {
+            targetTeam.addPlayer(new Player(position + " " + i, 20 + i, position, 60 + i));
+        }
     }
 }
