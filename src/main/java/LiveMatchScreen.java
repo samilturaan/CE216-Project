@@ -280,6 +280,8 @@ public class LiveMatchScreen {
             matchClockBar.setProgress(progress);
             clockLabel.setText(buildClockText(periodName, periodNumber, progress));
 
+            applyLiveStaminaDrain(progress);
+
             int targetRevealCount = (int) Math.floor(progress * pendingEventCount);
             while (revealedEvents[0] < targetRevealCount && match.hasPendingLiveEvents()) {
                 match.revealNextLiveEvent();
@@ -309,8 +311,42 @@ public class LiveMatchScreen {
             return periodName + " " + periodNumber + " IN PLAY  •  " + totalMinute + "'";
         }
 
+        if (match.getSport().getSportName().equalsIgnoreCase("Handball")) {
+            int minuteInHalf = Math.max(1, Math.min(30, (int) Math.round(progress * 30)));
+            int totalMinute = ((periodNumber - 1) * 30) + minuteInHalf;
+            return periodName + " " + periodNumber + " IN PLAY  •  " + totalMinute + "'";
+        }
+
         int rally = Math.max(1, Math.min(25, (int) Math.round(progress * 25)));
         return periodName + " " + periodNumber + " IN PLAY  •  Rally " + rally + "/25";
+    }
+
+    private void applyLiveStaminaDrain(double progress) {
+        drainTeamStamina(match.getHomeTeam(), progress);
+        drainTeamStamina(match.getAwayTeam(), progress);
+    }
+
+    private void drainTeamStamina(Team team, double progress) {
+        int baseDrain;
+
+        String sportName = match.getSport().getSportName();
+        if (sportName.equalsIgnoreCase("Football")) {
+            baseDrain = 12;
+        } else if (sportName.equalsIgnoreCase("Handball")) {
+            baseDrain = 10;
+        } else {
+            baseDrain = 8;
+        }
+
+        int currentTargetDrain = (int) Math.round(baseDrain * progress);
+
+        for (Player player : team.getStartingLineup()) {
+            int desiredStamina = Math.max(15, 100 - currentTargetDrain);
+
+            if (player.getStamina() > desiredStamina) {
+                player.setStamina(desiredStamina);
+            }
+        }
     }
 
     private void finishAnimatedPeriod(Button controlButton) {
@@ -435,6 +471,7 @@ public class LiveMatchScreen {
     private void showSubstitutionDialog() {
         Team userTeam = gameManager.getUserTeam();
         boolean volleyballMatch = isVolleyballTeam(userTeam);
+        boolean handballMatch = isHandballTeam(userTeam);
         selectedLiveLineupPlayer = null;
 
         StackPane overlay = new StackPane();
@@ -452,6 +489,8 @@ public class LiveMatchScreen {
 
         Label subtitle = new Label(volleyballMatch
                 ? "Select one of the starting six, then choose a bench player to enter the rotation."
+                : handballMatch
+                ? "Select one of the starting seven, then choose a bench player to enter the game."
                 : "Select a player on the pitch, then choose a bench player to enter the match.");
         subtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
 
@@ -469,13 +508,13 @@ public class LiveMatchScreen {
         HBox pitchHeader = new HBox();
         pitchHeader.setAlignment(Pos.CENTER_LEFT);
 
-        Label pitchTitle = new Label(volleyballMatch ? "VOLLEYBALL COURT" : "TACTICAL PITCH");
+        Label pitchTitle = new Label(volleyballMatch ? "VOLLEYBALL COURT" : handballMatch ? "HANDBALL COURT" : "TACTICAL PITCH");
         pitchTitle.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;");
 
         Region pitchSpacer = new Region();
         HBox.setHgrow(pitchSpacer, Priority.ALWAYS);
 
-        Label pitchHint = new Label(volleyballMatch ? "STARTING SIX" : "ON FIELD");
+        Label pitchHint = new Label(volleyballMatch ? "STARTING SIX" : handballMatch ? "STARTING SEVEN" : "ON FIELD");
         pitchHint.setStyle("-fx-background-color: #10251a; -fx-text-fill: #22c55e; -fx-font-size: 9px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 3 8 3 8;");
 
         pitchHeader.getChildren().addAll(pitchTitle, pitchSpacer, pitchHint);
@@ -484,6 +523,8 @@ public class LiveMatchScreen {
         pitch.setMinHeight(470);
         if (volleyballMatch) {
             pitch.setStyle("-fx-background-color: linear-gradient(to bottom, #92400e, #b45309); -fx-background-radius: 20; -fx-border-color: #f59e0b88; -fx-border-radius: 20; -fx-border-width: 1.5;");
+        } else if (handballMatch) {
+            pitch.setStyle("-fx-background-color: linear-gradient(to bottom, #1e3a8a, #0f766e); -fx-background-radius: 20; -fx-border-color: #38bdf866; -fx-border-radius: 20; -fx-border-width: 1.5;");
         } else {
             pitch.setStyle("-fx-background-color: linear-gradient(to bottom, #0f5132, #14532d); -fx-background-radius: 20; -fx-border-color: #22c55e66; -fx-border-radius: 20; -fx-border-width: 1.5;");
         }
@@ -512,6 +553,37 @@ public class LiveMatchScreen {
             StackPane.setAlignment(attackLineBottom, Pos.BOTTOM_CENTER);
             StackPane.setMargin(attackLineTop, new Insets(116, 0, 0, 0));
             StackPane.setMargin(attackLineBottom, new Insets(0, 0, 116, 0));
+        } else if (handballMatch) {
+            javafx.scene.shape.Rectangle centerLine = new javafx.scene.shape.Rectangle(2, 2);
+            centerLine.widthProperty().bind(pitch.widthProperty().subtract(48));
+            centerLine.setFill(Color.web("#ffffff55"));
+
+            javafx.scene.shape.Arc freeThrowLine = new javafx.scene.shape.Arc(0, 0, 160, 104, 0, 180);
+            freeThrowLine.setFill(Color.TRANSPARENT);
+            freeThrowLine.setStroke(Color.web("#ffffff44"));
+            freeThrowLine.setStrokeWidth(2);
+
+            javafx.scene.shape.Arc goalArea = new javafx.scene.shape.Arc(0, 0, 118, 70, 0, 180);
+            goalArea.setFill(Color.TRANSPARENT);
+            goalArea.setStroke(Color.web("#ffffff66"));
+            goalArea.setStrokeWidth(2);
+
+            javafx.scene.shape.Rectangle goalLine = new javafx.scene.shape.Rectangle(110, 4);
+            goalLine.setFill(Color.web("#f8fafcaa"));
+
+            Circle penaltyMark = new Circle(4);
+            penaltyMark.setFill(Color.web("#f8fafcaa"));
+
+            fieldLines.getChildren().addAll(centerLine, freeThrowLine, goalArea, goalLine, penaltyMark);
+            StackPane.setAlignment(centerLine, Pos.CENTER);
+            StackPane.setAlignment(goalArea, Pos.BOTTOM_CENTER);
+            StackPane.setAlignment(freeThrowLine, Pos.BOTTOM_CENTER);
+            StackPane.setAlignment(goalLine, Pos.BOTTOM_CENTER);
+            StackPane.setAlignment(penaltyMark, Pos.BOTTOM_CENTER);
+            StackPane.setMargin(goalArea, new Insets(0, 0, 18, 0));
+            StackPane.setMargin(freeThrowLine, new Insets(0, 0, 18, 0));
+            StackPane.setMargin(goalLine, new Insets(0, 0, 14, 0));
+            StackPane.setMargin(penaltyMark, new Insets(0, 0, 98, 0));
         } else {
             javafx.scene.shape.Rectangle centerLine = new javafx.scene.shape.Rectangle(2, 2);
             centerLine.widthProperty().bind(pitch.widthProperty().subtract(48));
@@ -552,6 +624,12 @@ public class LiveMatchScreen {
             lineupGrid.setHgap(48);
             lineupGrid.setAlignment(Pos.CENTER);
             StackPane.setAlignment(lineupGrid, Pos.CENTER);
+        } else if (handballMatch) {
+            lineupGrid.setPadding(new Insets(34, 36, 28, 36));
+            lineupGrid.setVgap(28);
+            lineupGrid.setHgap(22);
+            lineupGrid.setAlignment(Pos.BOTTOM_CENTER);
+            StackPane.setAlignment(lineupGrid, Pos.BOTTOM_CENTER);
         } else {
             lineupGrid.setPadding(new Insets(30, 24, 24, 24));
             lineupGrid.setVgap(16);
@@ -586,7 +664,16 @@ public class LiveMatchScreen {
                 {1, 0},
                 {2, 0}
         };
-        int[][] positions = volleyballMatch ? volleyballPositions : (lineup.size() <= 7 ? compactPositions : footballPositions);
+        int[][] handballPositions = {
+                {2, 5},
+                {0, 3},
+                {1, 2},
+                {2, 2},
+                {3, 2},
+                {4, 3},
+                {2, 1}
+        };
+        int[][] positions = volleyballMatch ? volleyballPositions : handballMatch ? handballPositions : (lineup.size() <= 7 ? compactPositions : footballPositions);
 
         for (int i = 0; i < lineup.size(); i++) {
             Player starter = lineup.get(i);
@@ -641,7 +728,7 @@ public class LiveMatchScreen {
         Region benchSpacer = new Region();
         HBox.setHgrow(benchSpacer, Priority.ALWAYS);
 
-        Label benchCount = new Label(userTeam.getSubstitutes().size() + (volleyballMatch ? " BENCH" : " SUBS"));
+        Label benchCount = new Label(userTeam.getSubstitutes().size() + ((volleyballMatch || handballMatch) ? " BENCH" : " SUBS"));
         benchCount.setStyle("-fx-background-color: #1e1635; -fx-text-fill: #a78bfa; -fx-font-size: 9px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 3 8 3 8;");
         benchHeader.getChildren().addAll(benchTitle, benchSpacer, benchCount);
 
@@ -721,6 +808,21 @@ public class LiveMatchScreen {
         return false;
     }
 
+    private boolean isHandballTeam(Team team) {
+        for (Player player : team.getPlayers()) {
+            String position = player.getPosition();
+            if ("Left Wing".equals(position)
+                    || "Left Back".equals(position)
+                    || "Center Back".equals(position)
+                    || "Right Back".equals(position)
+                    || "Right Wing".equals(position)
+                    || "Pivot".equals(position)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Button tacticCard(String icon, String tactic, String description, String[] selectedTactic) {
         Button button = new Button(icon + "\n" + tactic + "\n" + description);
         button.setWrapText(true);
@@ -764,6 +866,8 @@ public class LiveMatchScreen {
     }
 
     private String getEventBackground(String event) {
+        if (isHandballEvent(event)) return "#082f49";
+        if (event.contains("Goalkeeper save")) return "#2a1c05";
         if (event.contains("GOAL") || event.contains("wins the set")) return "#10251a";
         if (event.contains("Injury")) return "#2a1014";
         if (event.contains("Full time")) return "#0f1e35";
@@ -772,6 +876,8 @@ public class LiveMatchScreen {
     }
 
     private String getEventBorder(String event) {
+        if (isHandballEvent(event)) return "#0284c7";
+        if (event.contains("Goalkeeper save")) return "#f59e0b";
         if (event.contains("GOAL") || event.contains("wins the set")) return "#14532d";
         if (event.contains("Injury")) return "#7f1d1d";
         if (event.contains("Full time")) return "#1d4ed8";
@@ -780,6 +886,8 @@ public class LiveMatchScreen {
     }
 
     private String getEventSubtitle(String event) {
+        if (isHandballEvent(event)) return "Handball attack converted during live play.";
+        if (event.contains("Goalkeeper save")) return "Defensive stop recorded by the live match engine.";
         if (event.contains("GOAL")) return "Momentum shifts after an important scoring action.";
         if (event.contains("wins the set")) return "Set momentum recorded by the live match engine.";
         if (event.contains("Injury")) return "Squad availability will be affected after the match.";
@@ -799,7 +907,18 @@ public class LiveMatchScreen {
         );
     }
 
+    private boolean isHandballEvent(String event) {
+        return event.contains("Fast break")
+                || event.contains("Wing shot")
+                || event.contains("Backcourt")
+                || event.contains("Pivot finish")
+                || event.contains("7-meter")
+                || event.contains("Quick transition");
+    }
+
     private String formatEvent(String event) {
+        if (isHandballEvent(event)) return "🤾  " + event;
+        if (event.contains("Goalkeeper save")) return "🧤  " + event;
         if (event.contains("GOAL")) return "⚽  " + event;
         if (event.contains("Injury")) return "🚑  " + event;
         if (event.contains("Full time")) return "🏁  " + event;
@@ -809,6 +928,8 @@ public class LiveMatchScreen {
     }
 
     private String getEventColor(String event) {
+        if (isHandballEvent(event)) return "#38bdf8";
+        if (event.contains("Goalkeeper save")) return "#f59e0b";
         if (event.contains("GOAL") || event.contains("wins the set")) return "#22c55e";
         if (event.contains("Injury")) return "#ef4444";
         if (event.contains("Full time")) return "#60a5fa";

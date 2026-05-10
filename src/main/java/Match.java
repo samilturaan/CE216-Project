@@ -95,10 +95,14 @@ public class Match implements java.io.Serializable{
         int hStrength = Math.max(0, random.nextInt(3) + hAttackBonus - aDefBonus);
         int aStrength = Math.max(0, random.nextInt(3) + aAttackBonus - hDefBonus);
 
-        updateMatchStats(hStrength, aStrength, random);
+        if (!sport.getSportName().equals("Handball")) {
+            updateMatchStats(hStrength, aStrength, random);
+        }
 
         if (sport.getSportName().equals("Volleyball")) {
             prepareVolleyballSetEvents(playedPeriod, hStrength, aStrength, random);
+        } else if (sport.getSportName().equals("Handball")) {
+            prepareHandballPeriodEvents(playedPeriod, hAttackBonus, aAttackBonus, hDefBonus, aDefBonus, random);
         } else {
             prepareFootballPeriodEvents(playedPeriod, hStrength, aStrength, random);
         }
@@ -111,6 +115,78 @@ public class Match implements java.io.Serializable{
         if (hStrength == 0 && aStrength == 0) {
             pendingLiveEvents.add(new LivePeriodEvent(sport.getPeriodName() + " " + playedPeriod + ": Tight defensive period, no goals scored.", 0, 0, null));
         }
+    }
+
+    private void prepareHandballPeriodEvents(int playedPeriod, int hAttackBonus, int aAttackBonus, int hDefBonus, int aDefBonus, Random random) {
+        int homeBaseGoals = 10 + random.nextInt(7);
+        int awayBaseGoals = 10 + random.nextInt(7);
+
+        int homePeriodGoals = clamp(homeBaseGoals + hAttackBonus - aDefBonus, 6, 20);
+        int awayPeriodGoals = clamp(awayBaseGoals + aAttackBonus - hDefBonus, 6, 20);
+
+        updateHandballMatchStats(homePeriodGoals, awayPeriodGoals, random);
+
+        addPreparedHandballGoalEvents(homeTeam, homePeriodGoals, playedPeriod, random, true);
+        addPreparedHandballGoalEvents(awayTeam, awayPeriodGoals, playedPeriod, random, false);
+
+        if (homePeriodGoals == awayPeriodGoals) {
+            pendingLiveEvents.add(new LivePeriodEvent(sport.getPeriodName() + " " + playedPeriod + ": End-to-end handball period, both teams stay level.", 0, 0, null));
+        }
+    }
+
+    private void addPreparedHandballGoalEvents(Team scoringTeam, int scoreCount, int period, Random random, boolean homeScored) {
+        String[] actions = {
+                "Fast break goal",
+                "Wing shot scores",
+                "Backcourt shot finds the corner",
+                "Pivot finish from six meters",
+                "7-meter penalty scored",
+                "Quick transition goal"
+        };
+
+        for (int i = 0; i < scoreCount; i++) {
+            Player scorer = pickRandomAvailablePlayer(scoringTeam, random);
+            String action = actions[random.nextInt(actions.length)];
+            String event;
+
+            if (scorer != null) {
+                event = sport.getPeriodName() + " " + period + ": " + action + " - " + scoringTeam.getName() + " | " + scorer.getName();
+            } else {
+                event = sport.getPeriodName() + " " + period + ": " + action + " - " + scoringTeam.getName();
+            }
+
+            pendingLiveEvents.add(new LivePeriodEvent(event, homeScored ? 1 : 0, homeScored ? 0 : 1, scorer));
+
+            if (i % 5 == 4 && random.nextBoolean()) {
+                Team defendingTeam = homeScored ? awayTeam : homeTeam;
+                Player keeper = pickRandomAvailablePlayer(defendingTeam, random);
+                String saveEvent;
+                if (keeper != null) {
+                    saveEvent = sport.getPeriodName() + " " + period + ": Goalkeeper save - " + defendingTeam.getName() + " | " + keeper.getName();
+                } else {
+                    saveEvent = sport.getPeriodName() + " " + period + ": Goalkeeper save - " + defendingTeam.getName();
+                }
+                pendingLiveEvents.add(new LivePeriodEvent(saveEvent, 0, 0, null));
+            }
+        }
+    }
+
+    private void updateHandballMatchStats(int homePeriodGoals, int awayPeriodGoals, Random random) {
+        int homeAttempts = homePeriodGoals + 6 + random.nextInt(7);
+        int awayAttempts = awayPeriodGoals + 6 + random.nextInt(7);
+
+        homeShots += homeAttempts;
+        awayShots += awayAttempts;
+        homeShotsOnTarget += Math.min(homeAttempts, homePeriodGoals + 3 + random.nextInt(4));
+        awayShotsOnTarget += Math.min(awayAttempts, awayPeriodGoals + 3 + random.nextInt(4));
+
+        homeFouls += 4 + random.nextInt(6);
+        awayFouls += 4 + random.nextInt(6);
+
+        int homeMomentum = calculateTeamMomentum(homeTeam);
+        int awayMomentum = calculateTeamMomentum(awayTeam);
+        homePossession = clamp(50 + homeMomentum - awayMomentum + random.nextInt(9) - 4, 42, 58);
+        awayPossession = 100 - homePossession;
     }
 
     private void prepareVolleyballSetEvents(int playedPeriod, int hStrength, int aStrength, Random random) {

@@ -47,54 +47,45 @@ public class GameManager implements java.io.Serializable{
     public void startNewGame(String userTeamName) {
         if (selectedSport == null) return;
 
-        userTeam = new Team(userTeamName);
-
         league = new League(selectedSport);
+        trainingsThisWeek = 0;
+        newsItems.clear();
+
+        userTeam = new Team(userTeamName);
+        generatePlayersForTeam(userTeam);
+        userTeam.generateDefaultLineup();
+        userTeam.getCoaches().add(new Coach(nameGenerator.getRandomCoachName(), 45, 70));
         league.addTeam(userTeam);
 
-        int onField = selectedSport.getPlayersOnField();
-        int subsCount = selectedSport.getSubstitutesCount();
-
-        for (int i = 0; i < onField; i++) {
-            String pos = getInitialPositionForSport(i, selectedSport.getSportName());
-            Player p = new Player(nameGenerator.getRandomPlayerName(), 20 + new Random().nextInt(12), pos, 70 + new Random().nextInt(10));
-            userTeam.getPlayers().add(p);
-            userTeam.getStartingLineup().add(p);
-        }
-
-        for (int i = 0; i < subsCount; i++) {
-            String pos = getInitialPositionForSport(new Random().nextInt(onField), selectedSport.getSportName());
-            Player p = new Player(nameGenerator.getRandomPlayerName(), 18 + new Random().nextInt(15), pos, 60 + new Random().nextInt(10));
-            userTeam.getPlayers().add(p);
-            userTeam.getSubstitutes().add(p);
-        }
-        userTeam.getCoaches().add(new Coach(nameGenerator.getRandomCoachName(), 45, 70));
-
         for (int k = 0; k < 17; k++) {
-            Team aiTeam = new Team(nameGenerator.getRandomTeamName() + " FC");
-
-            for (int i = 0; i < onField; i++) {
-                String pos = getInitialPositionForSport(i, selectedSport.getSportName());
-                Player p = new Player(nameGenerator.getRandomPlayerName(), 20 + new Random().nextInt(12), pos, 50 + new Random().nextInt(25));
-                aiTeam.getPlayers().add(p);
-                aiTeam.getStartingLineup().add(p);
-            }
-            for (int i = 0; i < subsCount; i++) {
-                String pos = getInitialPositionForSport(new Random().nextInt(onField), selectedSport.getSportName());
-                Player p = new Player(nameGenerator.getRandomPlayerName(), 18 + new Random().nextInt(15), pos, 45 + new Random().nextInt(20));
-                aiTeam.getPlayers().add(p);
-                aiTeam.getSubstitutes().add(p);
-            }
+            Team aiTeam = new Team(nameGenerator.getRandomTeamName() + getTeamSuffixForSport());
+            generatePlayersForTeam(aiTeam);
+            aiTeam.generateDefaultLineup();
             aiTeam.getCoaches().add(new Coach(nameGenerator.getRandomCoachName(), 50, 65));
             league.addTeam(aiTeam);
         }
 
         league.generateFixtures();
-        trainingsThisWeek = 0;
-        newsItems.clear();
-        newsItems.add("Breaking: " + userTeamName + " joins the " + selectedSport.getSportName() + " league!");
+        addNews("Breaking: " + userTeamName + " joins the " + selectedSport.getSportName() + " league!");
     }
 
+    private String getTeamSuffixForSport() {
+        if (selectedSport == null) {
+            return "";
+        }
+
+        String sportName = selectedSport.getSportName();
+        if (sportName.equalsIgnoreCase("Football")) {
+            return " FC";
+        }
+        if (sportName.equalsIgnoreCase("Handball")) {
+            return " HC";
+        }
+        if (sportName.equalsIgnoreCase("Volleyball")) {
+            return " VC";
+        }
+        return "";
+    }
 
     private String getInitialPositionForSport(int index, String sportName) {
         if ("Handball".equals(sportName)) {
@@ -157,6 +148,17 @@ public class GameManager implements java.io.Serializable{
             addPositions(positions, "Middle Blocker", 4);
             addPositions(positions, "Opposite Hitter", 2);
             addPositions(positions, "Libero", 2);
+            return positions;
+        }
+
+        if (sportName.equalsIgnoreCase("Handball")) {
+            addPositions(positions, "Goalkeeper", 2);
+            addPositions(positions, "Left Wing", 2);
+            addPositions(positions, "Left Back", 2);
+            addPositions(positions, "Center Back", 2);
+            addPositions(positions, "Right Back", 2);
+            addPositions(positions, "Right Wing", 2);
+            addPositions(positions, "Pivot", 2);
             return positions;
         }
 

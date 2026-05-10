@@ -102,7 +102,15 @@ public class Team implements java.io.Serializable {
         List<Player> availablePlayers = getAvailablePlayers();
         int targetLineupSize = getTargetLineupSize();
 
-        if (isFootballTeam()) {
+        if (isHandballTeam()) {
+            addBestPlayersByPosition("Goalkeeper", 1, targetLineupSize);
+            addBestPlayersByPosition("Left Wing", 1, targetLineupSize);
+            addBestPlayersByPosition("Left Back", 1, targetLineupSize);
+            addBestPlayersByPosition("Center Back", 1, targetLineupSize);
+            addBestPlayersByPosition("Right Back", 1, targetLineupSize);
+            addBestPlayersByPosition("Right Wing", 1, targetLineupSize);
+            addBestPlayersByPosition("Pivot", 1, targetLineupSize);
+        } else if (isFootballTeam()) {
             addBestPlayersByPosition("Goalkeeper", 1, targetLineupSize);
             addBestPlayersByPosition("Defender", 4, targetLineupSize);
             addBestPlayersByPosition("Midfielder", 3, targetLineupSize);
@@ -132,15 +140,28 @@ public class Team implements java.io.Serializable {
         if (isVolleyballTeam()) {
             return 6;
         }
+        if (isHandballTeam()) {
+            return 7;
+        }
         return 11;
     }
 
     private boolean isFootballTeam() {
-        return hasPosition("Goalkeeper") || hasPosition("Defender") || hasPosition("Midfielder") || hasPosition("Forward");
+        return !isHandballTeam()
+                && (hasPosition("Goalkeeper") || hasPosition("Defender") || hasPosition("Midfielder") || hasPosition("Forward"));
     }
 
     private boolean isVolleyballTeam() {
         return hasPosition("Setter") || hasPosition("Outside Hitter") || hasPosition("Middle Blocker") || hasPosition("Opposite Hitter") || hasPosition("Libero");
+    }
+
+    private boolean isHandballTeam() {
+        return hasPosition("Left Wing")
+                || hasPosition("Left Back")
+                || hasPosition("Center Back")
+                || hasPosition("Right Back")
+                || hasPosition("Right Wing")
+                || hasPosition("Pivot");
     }
 
     private boolean hasPosition(String position) {

@@ -63,7 +63,12 @@ public class MainScreen {
         Label teamNameL = new Label(gm.getUserTeam() != null ? gm.getUserTeam().getName() : "");
         teamNameL.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #f0f4ff;");
         ISport sport = gm.getSelectedSport();
-        String sportEmoji = sport != null && "Football".equals(sport.getSportName()) ? "⚽" : "🏐";
+        String sportEmoji = "🏐";
+        if (sport != null && "Football".equals(sport.getSportName())) {
+            sportEmoji = "⚽";
+        } else if (sport != null && "Handball".equals(sport.getSportName())) {
+            sportEmoji = "🤾";
+        }
         Label sportL = new Label(sportEmoji + " " + (sport != null ? sport.getSportName() : ""));
         sportL.setStyle("-fx-font-size: 11px; -fx-text-fill: #334155;");
         teamText.getChildren().addAll(teamNameL, sportL);
@@ -1129,6 +1134,9 @@ public class MainScreen {
     }
 
     private VBox buildPitchView(Team team) {
+        if (isHandballTeam(team)) {
+            return buildHandballCourtView(team);
+        }
         if (isVolleyballTeam(team)) {
             return buildVolleyballCourtView(team);
         }
@@ -1211,7 +1219,8 @@ public class MainScreen {
         pitch.getChildren().addAll(fieldLines, positions);
         wrapper.getChildren().addAll(header, pitch);
         return wrapper;
-    }    private VBox buildVolleyballCourtView(Team team) {
+    }
+    private VBox buildVolleyballCourtView(Team team) {
         VBox wrapper = new VBox(12);
         wrapper.setPadding(new Insets(18));
         wrapper.setStyle("-fx-background-color: #111827; -fx-background-radius: 16; -fx-border-color: #1e2d45; -fx-border-radius: 16; -fx-border-width: 1;");
@@ -1276,6 +1285,87 @@ public class MainScreen {
             Player player = lineup.get(i);
             StackPane playerNode = buildPitchPlayerNode(player);
             int[] pos = getVolleyballCourtPosition(i);
+            positions.add(playerNode, pos[0], pos[1]);
+        }
+
+        court.getChildren().addAll(courtLines, positions);
+        wrapper.getChildren().addAll(header, court);
+        return wrapper;
+    }
+
+    private VBox buildHandballCourtView(Team team) {
+        VBox wrapper = new VBox(12);
+        wrapper.setPadding(new Insets(18));
+        wrapper.setStyle("-fx-background-color: #111827; -fx-background-radius: 16; -fx-border-color: #1e2d45; -fx-border-radius: 16; -fx-border-width: 1;");
+
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+        Label title = new Label("STARTING SEVEN");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label hint = new Label(selectedLineupPlayer == null ? "Select a player to substitute" : "Selected: " + selectedLineupPlayer.getName());
+        hint.setStyle("-fx-font-size: 11px; -fx-text-fill: " + (selectedLineupPlayer == null ? "#475569" : "#60a5fa") + ";");
+        header.getChildren().addAll(title, spacer, hint);
+
+        StackPane court = new StackPane();
+        court.setMinHeight(500);
+        court.setMaxWidth(Double.MAX_VALUE);
+        court.setStyle("-fx-background-color: linear-gradient(to bottom, #1e3a8a, #0f766e); -fx-background-radius: 20; -fx-border-color: #38bdf866; -fx-border-radius: 20; -fx-border-width: 1.5;");
+
+        StackPane courtLines = new StackPane();
+        courtLines.setMouseTransparent(true);
+        courtLines.setMinHeight(500);
+        courtLines.setMaxWidth(Double.MAX_VALUE);
+
+        Rectangle centerLine = new Rectangle(2, 2);
+        centerLine.widthProperty().bind(court.widthProperty().subtract(48));
+        centerLine.setFill(Color.web("#ffffff55"));
+
+        Arc freeThrowLine = new Arc(0, 0, 180, 118, 0, 180);
+        freeThrowLine.setFill(Color.TRANSPARENT);
+        freeThrowLine.setStroke(Color.web("#ffffff44"));
+        freeThrowLine.setStrokeWidth(2);
+
+        Arc goalArea = new Arc(0, 0, 130, 78, 0, 180);
+        goalArea.setFill(Color.TRANSPARENT);
+        goalArea.setStroke(Color.web("#ffffff66"));
+        goalArea.setStrokeWidth(2);
+
+        Rectangle goalLine = new Rectangle(120, 4);
+        goalLine.setFill(Color.web("#f8fafcaa"));
+
+        Circle penaltyMark = new Circle(4);
+        penaltyMark.setFill(Color.web("#f8fafcaa"));
+
+        courtLines.getChildren().addAll(centerLine, freeThrowLine, goalArea, goalLine, penaltyMark);
+        StackPane.setAlignment(centerLine, Pos.CENTER);
+        StackPane.setAlignment(goalArea, Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(freeThrowLine, Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(goalLine, Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(penaltyMark, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(goalArea, new Insets(0, 0, 18, 0));
+        StackPane.setMargin(freeThrowLine, new Insets(0, 0, 18, 0));
+        StackPane.setMargin(goalLine, new Insets(0, 0, 14, 0));
+        StackPane.setMargin(penaltyMark, new Insets(0, 0, 108, 0));
+
+        GridPane positions = new GridPane();
+        positions.setPadding(new Insets(36, 48, 32, 48));
+        positions.setVgap(34);
+        positions.setHgap(28);
+        positions.setAlignment(Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(positions, Pos.BOTTOM_CENTER);
+
+        List<Player> lineup = team.getStartingLineup();
+        if (lineup.isEmpty() || lineup.size() > 7) {
+            team.generateDefaultLineup();
+            lineup = team.getStartingLineup();
+        }
+
+        for (int i = 0; i < lineup.size(); i++) {
+            Player player = lineup.get(i);
+            StackPane playerNode = buildPitchPlayerNode(player);
+            int[] pos = getHandballCourtPosition(i);
             positions.add(playerNode, pos[0], pos[1]);
         }
 
@@ -1387,6 +1477,21 @@ public class MainScreen {
         return false;
     }
 
+    private boolean isHandballTeam(Team team) {
+        for (Player player : team.getPlayers()) {
+            String position = player.getPosition();
+            if ("Left Wing".equals(position)
+                    || "Left Back".equals(position)
+                    || "Center Back".equals(position)
+                    || "Right Back".equals(position)
+                    || "Right Wing".equals(position)
+                    || "Pivot".equals(position)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private int[] getVolleyballCourtPosition(int index) {
         int[][] positions = {
                 {1, 1},
@@ -1395,6 +1500,19 @@ public class MainScreen {
                 {0, 0},
                 {1, 0},
                 {2, 0}
+        };
+        return positions[Math.min(index, positions.length - 1)];
+    }
+
+    private int[] getHandballCourtPosition(int index) {
+        int[][] positions = {
+                {2, 5},
+                {0, 3},
+                {1, 2},
+                {2, 2},
+                {3, 2},
+                {4, 3},
+                {2, 1}
         };
         return positions[Math.min(index, positions.length - 1)];
     }
